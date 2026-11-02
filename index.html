@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CAD Batch OCR & PDF Overlay - v5.0</title>
+  <title>CAD Batch OCR & PDF Overlay - v6.0</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- pdf-lib CDN -->
@@ -32,34 +32,37 @@
         <div>
           <h1 class="text-sm font-bold text-white flex items-center gap-2">
             CAD Batch OCR &amp; PDF Overlay
-            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500 text-slate-950 border border-emerald-400 font-mono font-extrabold animate-pulse">
-              v5.0 REBUILT
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-400 text-slate-950 border border-emerald-300 font-mono font-bold">
+              v6.0 Direct Engine
             </span>
           </h1>
           <p class="text-[11px] text-slate-400">
-            OpenRouter Direct Web Engine • Tự động bóc tách bản vẽ kỹ thuật &amp; khung tên
+            Hỗ trợ OpenRouter &amp; Google Gemini AI • Tự động bóc tách bản vẽ &amp; khung tên
           </p>
         </div>
       </div>
 
-      <!-- API KEY INPUT -->
-      <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 shadow-inner">
-        <span class="text-[11px] font-semibold text-purple-400 pl-1 shrink-0">OpenRouter Key:</span>
+      <!-- CẤU HÌNH NHÀ CUNG CẤP & KEY -->
+      <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 shadow-inner flex-wrap">
+        <select id="providerSelect" class="bg-slate-900 text-xs border border-purple-500/50 text-purple-300 rounded-lg px-2 py-1 font-semibold focus:outline-none">
+          <option value="openrouter">OpenRouter API</option>
+          <option value="gemini">Google Gemini API</option>
+        </select>
+        
         <div class="relative">
           <input
             id="apiKeyInput"
             type="password"
-            placeholder="Dán key sk-or-v1-..."
-            class="w-52 sm:w-64 px-2.5 py-1 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-mono"
+            placeholder="Dán mã API Key vào đây..."
+            class="w-48 sm:w-60 px-2.5 py-1 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-mono"
           />
           <button id="toggleKeyBtn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 hover:text-white">
             Hiện
           </button>
         </div>
+
         <select id="modelSelect" class="bg-slate-900 text-xs border border-slate-700 text-slate-300 rounded-lg px-2 py-1 focus:outline-none">
-          <option value="qwen/qwen-2.5-vl-7b-instruct:free">Qwen 2.5 VL 7B (Free)</option>
-          <option value="meta-llama/llama-3.2-11b-vision-instruct:free">Llama 3.2 11B Vision (Free)</option>
-          <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (Free)</option>
+          <!-- Tùy chọn sẽ tự thay đổi theo nhà cung cấp -->
         </select>
       </div>
     </div>
@@ -74,21 +77,15 @@
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
     <!-- LEFT: QUEUE & UPLOAD -->
     <div class="lg:col-span-4 flex flex-col h-[calc(100vh-6.5rem)] bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
-      <!-- VÙNG TẢI FILE TỰ ĐỘNG NẠP TRỰC TIẾP -->
+      <!-- VÙNG TẢI FILE -->
       <div class="p-3 border-b border-slate-800 bg-slate-950/60">
         <label class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-purple-500/60 hover:border-purple-400 rounded-xl bg-purple-950/20 hover:bg-purple-950/30 cursor-pointer transition-all text-center">
           <svg class="w-7 h-7 text-purple-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <span class="text-xs font-bold text-purple-200">BẤM VÀO ĐÂY ĐỂ CHỌN ẢNH BẢN VẼ</span>
-          <span class="text-[10px] text-slate-400 mt-1">Hỗ trợ PNG, JPG, JPEG, WEBP (chọn nhiều ảnh cùng lúc)</span>
-          <input
-            id="fileInput"
-            type="file"
-            multiple
-            accept="image/*"
-            class="hidden"
-          />
+          <span class="text-xs font-bold text-purple-200">CHỌN HOẶC KÉO THẢ BẢN VẼ VÀO ĐÂY</span>
+          <span class="text-[10px] text-slate-400 mt-1">Hỗ trợ PNG, JPG, JPEG, WEBP</span>
+          <input id="fileInput" type="file" multiple accept="image/*" class="hidden" />
         </label>
       </div>
 
@@ -98,7 +95,7 @@
           Bắt đầu OCR
         </button>
         <div class="flex items-center gap-1">
-          <button id="downloadZipBtn" disabled class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white text-xs font-semibold shadow-md disabled:opacity-40" title="Tải trọn bộ 3 file cho tất cả bản vẽ">
+          <button id="downloadZipBtn" disabled class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white text-xs font-semibold shadow-md disabled:opacity-40">
             Tải tất cả (.ZIP)
           </button>
           <button id="downloadPdfZipBtn" disabled class="px-2 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 text-xs disabled:opacity-40">
@@ -110,9 +107,6 @@
       <!-- QUEUE LIST -->
       <div id="queueList" class="flex-1 overflow-y-auto p-2 space-y-1.5">
         <div id="emptyHint" class="p-8 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
-          <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
           Chưa có file nào trong hàng đợi
         </div>
       </div>
@@ -174,8 +168,20 @@
   </main>
 
   <script>
+    const OPENROUTER_MODELS = [
+      { id: "qwen/qwen-2.5-vl-7b-instruct:free", name: "Qwen 2.5 VL 7B (Free)" },
+      { id: "meta-llama/llama-3.2-11b-vision-instruct:free", name: "Llama 3.2 11B Vision (Free)" },
+      { id: "google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash (Free)" }
+    ];
+
+    const GEMINI_MODELS = [
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Khuyên dùng)" },
+      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (Ổn định)" }
+    ];
+
     let state = {
-      apiKey: localStorage.getItem("cad_openrouter_key") || "",
+      provider: localStorage.getItem("cad_provider") || "openrouter",
+      apiKey: "",
       queue: [],
       activeItemId: null,
       isProcessing: false,
@@ -184,6 +190,7 @@
       currentTab: "formatted"
     };
 
+    const providerSelect = document.getElementById("providerSelect");
     const apiKeyInput = document.getElementById("apiKeyInput");
     const toggleKeyBtn = document.getElementById("toggleKeyBtn");
     const modelSelect = document.getElementById("modelSelect");
@@ -207,13 +214,36 @@
     const toast = document.getElementById("toast");
     const toastMsg = document.getElementById("toastMsg");
 
-    apiKeyInput.value = state.apiKey;
-    const saveApiKey = (val) => {
-      state.apiKey = val.trim();
-      localStorage.setItem("cad_openrouter_key", state.apiKey);
-    };
+    function updateModelList() {
+      modelSelect.innerHTML = "";
+      const models = state.provider === "openrouter" ? OPENROUTER_MODELS : GEMINI_MODELS;
+      models.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.name;
+        modelSelect.appendChild(opt);
+      });
 
-    apiKeyInput.addEventListener("input", (e) => saveApiKey(e.target.value));
+      const savedKey = localStorage.getItem(`cad_${state.provider}_key`) || "";
+      state.apiKey = savedKey;
+      apiKeyInput.value = savedKey;
+      apiKeyInput.placeholder = state.provider === "openrouter" ? "Dán key sk-or-v1-..." : "Dán key AI Studio (AQ... hoặc AIza...)";
+    }
+
+    providerSelect.value = state.provider;
+    updateModelList();
+
+    providerSelect.addEventListener("change", (e) => {
+      state.provider = e.target.value;
+      localStorage.setItem("cad_provider", state.provider);
+      updateModelList();
+      showToast(`Đã chuyển sang: ${state.provider === "openrouter" ? "OpenRouter" : "Google Gemini"}`);
+    });
+
+    apiKeyInput.addEventListener("input", (e) => {
+      state.apiKey = e.target.value.trim();
+      localStorage.setItem(`cad_${state.provider}_key`, state.apiKey);
+    });
 
     toggleKeyBtn.addEventListener("click", () => {
       if (apiKeyInput.type === "password") {
@@ -232,7 +262,6 @@
       setTimeout(() => toast.classList.add("hidden"), 3500);
     }
 
-    // NẠP ẢNH TRỰC TIẾP
     function handleFiles(files) {
       if (!files || !files.length) return;
       Array.from(files).forEach(file => {
@@ -260,7 +289,6 @@
       fileInput.value = "";
     });
 
-    // KÉO THẢ TỰ DO TOÀN MÀN HÌNH
     window.addEventListener("dragover", (e) => e.preventDefault());
     window.addEventListener("drop", (e) => {
       e.preventDefault();
@@ -369,7 +397,7 @@
     }
 
     function itemStatusText(item) {
-      if (item.status === "processing") return "Đang gửi yêu cầu bóc tách tới OpenRouter...";
+      if (item.status === "processing") return "Đang phân tích bản vẽ...";
       if (item.status === "error") return "Lỗi: " + (item.error || "Không xác định");
       return "(Chưa có kết quả OCR - Nhấn 'Bắt đầu OCR')";
     }
@@ -419,14 +447,6 @@
       }
 
       if (items.length > 0) return { textItems: items };
-
-      const lastClose = cleaned.lastIndexOf("}");
-      if (lastClose > 0) {
-        const truncated = cleaned.substring(0, lastClose + 1);
-        try { return JSON.parse(truncated + "\n]}"); } catch (e) {}
-        try { return JSON.parse(truncated); } catch (e) {}
-      }
-
       return { textItems: [] };
     }
 
@@ -456,14 +476,12 @@
       });
     }
 
-    // GỌI OPENROUTER CHUẨN KÈM PROXY FALLBACK
-    async function callOpenRouterOcr(item) {
+    // GỌI API THEO NHÀ CUNG CẤP (OPENROUTER HOẶC GOOGLE GEMINI)
+    async function executeOcr(item) {
       const key = state.apiKey.trim();
-      if (!key) throw new Error("Chưa nhập OpenRouter API Key!");
+      if (!key) throw new Error("Chưa nhập mã API Key!");
 
-      const model = modelSelect.value;
       const optimizedUrl = await prepareOptimizedImage(item.previewUrl);
-
       const promptText = `Perform exhaustive OCR on this CAD/Electrical drawing image.
 Extract all visible text, wire tags, terminal IDs, line labels, and title block info.
 Return STRICT JSON ONLY with this exact structure:
@@ -478,60 +496,70 @@ Return STRICT JSON ONLY with this exact structure:
 }
 Bounding box coordinates must be normalized integers 0 to 1000.`;
 
-      const payload = {
-        model: model,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: promptText },
-              { type: "image_url", image_url: { url: optimizedUrl } }
-            ]
-          }
-        ],
-        temperature: 0.1
-      };
+      let rawContent = "";
 
-      let res = null;
+      if (state.provider === "gemini") {
+        // GOOGLE GEMINI TRỰC TIẾP (KHÔNG BỊ CHẶN CORS)
+        const base64Data = optimizedUrl.split(",")[1];
+        const mimeType = optimizedUrl.split(";")[0].split(":")[1] || "image/jpeg";
+        const url = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){modelSelect.value}:generateContent?key=${key}`;
 
-      // Thử trực tiếp
-      try {
-        res = await fetch("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)", {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                { inlineData: { mimeType: mimeType, data: base64Data } }
+              ]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              responseMimeType: "application/json"
+            }
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || `Mã lỗi HTTP: ${res.status}`);
+        }
+        const data = await res.json();
+        rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+      } else {
+        // OPENROUTER TRỰC TIẾP
+        const originUrl = window.location.origin.includes("http") ? window.location.origin : "[https://nxtcapcut.github.io](https://nxtcapcut.github.io)";
+        const res = await fetch("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${key}`
+            "Authorization": `Bearer ${key}`,
+            "HTTP-Referer": originUrl,
+            "X-Title": "CAD OCR Web"
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            model: modelSelect.value,
+            messages: [{
+              role: "user",
+              content: [
+                { type: "text", text: promptText },
+                { type: "image_url", image_url: { url: optimizedUrl } }
+              ]
+            }],
+            temperature: 0.1
+          })
         });
-      } catch (e) {}
 
-      // Dự phòng nếu lỗi 405 hoặc chặn mạng
-      if (!res || res.status === 405 || !res.ok) {
-        try {
-          res = await fetch("[https://corsproxy.io/](https://corsproxy.io/)?" + encodeURIComponent("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)"), {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${key}`
-            },
-            body: JSON.stringify(payload)
-          });
-        } catch (proxyErr) {
-          throw new Error("Lỗi kết nối máy chủ AI: " + proxyErr.message);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || `Mã lỗi HTTP: ${res.status}`);
         }
+        const data = await res.json();
+        rawContent = data.choices?.[0]?.message?.content || "{}";
       }
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        const serverMsg = errData.error?.message || `Mã lỗi HTTP: ${res.status}`;
-        throw new Error(serverMsg);
-      }
-
-      const data = await res.json();
-      const rawText = data.choices?.[0]?.message?.content || "{}";
-      const parsed = robustExtractJson(rawText);
-
+      const parsed = robustExtractJson(rawContent);
       const rawItems = parsed.textItems || [];
       const textItems = [];
 
@@ -564,7 +592,6 @@ Bounding box coordinates must be normalized integers 0 to 1000.`;
       });
 
       const formattedText = textItems.map(t => t.text).join("\n");
-
       const tbItems = textItems.filter(t => t.boundingBox[0] >= 700 && t.boundingBox[1] >= 640);
       const tbLines = tbItems.map(t => t.text);
       const titleBlockText = `[KHUNG TÊN BẢN VẼ - ${item.name.replace(/\.[^/.]+$/, "").toUpperCase()}]\n${
@@ -581,7 +608,7 @@ Bounding box coordinates must be normalized integers 0 to 1000.`;
 
     startOcrBtn.onclick = async () => {
       if (!state.apiKey) {
-        alert("CHƯA CÓ API KEY:\nVui lòng dán OpenRouter API Key vào ô góc trên cùng trước!");
+        alert("CHƯA CÓ API KEY:\nVui lòng dán API Key vào ô góc trên cùng trước!");
         return;
       }
       if (!state.queue.length) {
@@ -601,12 +628,12 @@ Bounding box coordinates must be normalized integers 0 to 1000.`;
         renderActiveView();
 
         try {
-          item.result = await callOpenRouterOcr(item);
+          item.result = await executeOcr(item);
           item.status = "success";
         } catch (e) {
           item.status = "error";
           item.error = e.message;
-          alert(`LỖI TỪ OPENROUTER (${item.name}):\n\n${e.message}`);
+          alert(`LỖI PHÂN TÍCH (${item.name}):\n\n${e.message}`);
         }
         renderQueue();
         renderActiveView();
@@ -619,9 +646,7 @@ Bounding box coordinates must be normalized integers 0 to 1000.`;
     };
 
     async function generatePdfOverlay(item) {
-      if (typeof PDFLib === "undefined") {
-        throw new Error("Thư viện PDFLib chưa tải xong!");
-      }
+      if (typeof PDFLib === "undefined") throw new Error("PDFLib chưa tải xong!");
       const { PDFDocument, rgb, StandardFonts, degrees } = PDFLib;
 
       const pdfDoc = await PDFDocument.create();
