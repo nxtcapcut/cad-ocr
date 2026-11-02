@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CAD Batch OCR & PDF Overlay - v25.0</title>
+  <title>CAD Batch OCR & PDF Overlay - v26.0</title>
 
-  <!-- ==================== 1. NẠP JSPDF & JSZIP TỪ CLOUDFLARE CDN ==================== -->
+  <!-- ==================== 1. NẠP ĐẦY ĐỦ THƯ VIỆN TRONG <HEAD> ==================== -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
@@ -53,7 +53,7 @@
   <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-6 py-3">
     <div class="max-w-[1700px] mx-auto flex flex-wrap items-center justify-between gap-4">
       
-      <!-- Logo, Tên công cụ & Badge Version v25.0 -->
+      <!-- Logo, Tên công cụ & Badge Version v26.0 -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-600 to-amber-500 flex items-center justify-center shadow-lg shadow-purple-950/40">
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,10 +63,10 @@
         <div>
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
             CAD Batch OCR & PDF Overlay
-            <span class="px-2 py-0.5 rounded bg-emerald-400 text-slate-950 font-mono font-bold text-[10px]">v25.0</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-400 text-slate-950 font-mono font-bold text-[10px]">v26.0</span>
             <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60 font-mono">Gemini 3.8 Flash</span>
           </h1>
-          <p class="text-xs text-slate-400">PDF Vector Text Thực Thụ (Bôi đen chuột, Copy & Search Ctrl+F)</p>
+          <p class="text-xs text-slate-400">PDF Vector Text Nổi Rõ Ràng - Chuột Bôi Đen, Sao Chép & Tìm Kiếm Ctrl+F</p>
         </div>
       </div>
 
@@ -251,7 +251,7 @@
     const STATE = {
       apiKey: localStorage.getItem('gemini_cad_key') || '',
       selectedModel: 'gemini-3.8-flash',
-      queue: [], // { id, file, originalImgUrl, width, height, status: 'Chờ'|'Đang đọc...'|'Hoàn tất'|'Lỗi', ocrData: null, errorMsg: null }
+      queue: [], // { id, file, originalImgUrl, previewUrl, width, height, status: 'Chờ'|'Đang đọc...'|'Hoàn tất'|'Lỗi', ocrData: null, result: null, errorMsg: null }
       selectedIndex: -1,
       isProcessing: false,
       overlayColor: '#7c3aed',
@@ -296,18 +296,6 @@
       btnExportSinglePdf: document.getElementById('btnExportSinglePdf'),
       btnExportSinglePdfText: document.getElementById('btnExportSinglePdfText')
     };
-
-    // --- CHUYỂN MÃ MÀU HEX SANG RGB ---
-    function hexToRgb(hex) {
-      let clean = hex.replace('#', '');
-      if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
-      const num = parseInt(clean, 16) || 0;
-      return {
-        r: (num >> 16) & 255,
-        g: (num >> 8) & 255,
-        b: num & 255
-      };
-    }
 
     // --- KHỞI TẠO ỨNG DỤNG ---
     function init() {
@@ -431,96 +419,95 @@
       });
     }
 
-    // Đảm bảo định dạng ảnh tương thích 100% với jsPDF addImage
-    function getCleanImageData(srcUrl) {
-      return new Promise((resolve) => {
-        if (srcUrl.startsWith('data:image/jpeg') || srcUrl.startsWith('data:image/png')) {
-          return resolve({ data: srcUrl, format: srcUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG' });
-        }
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          resolve({ data: canvas.toDataURL('image/jpeg', 0.92), format: 'JPEG' });
-        };
-        img.onerror = () => resolve({ data: srcUrl, format: 'JPEG' });
-        img.src = srcUrl;
-      });
-    }
-
-    // --- 2. HÀM TẠO PDF VECTOR THỰC THỤ BẰNG JSPDF (SEARCH, BÔI ĐEN, COPY ĐƯỢC) ---
+    // --- 2. VIẾT LẠI HOÀN CHỈNH HÀM GENERATEPDFOVERLAY (BẢO ĐẢM NỔI RÕ KHUNG VÀ CHỮ VECTOR) ---
     async function generatePdfOverlay(item) {
-      const jsPdfClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-      if (!jsPdfClass) {
-        alert("Thư viện jsPDF chưa sẵn sàng. Vui lòng kiểm tra lại mạng!");
+      const jspdfLib = window.jspdf || {};
+      const jsPDF = jspdfLib.jsPDF || window.jsPDF;
+      if (!jsPDF) {
+        alert("Thư viện jsPDF chưa sẵn sàng. Vui lòng kiểm tra lại kết nối mạng!");
         return null;
       }
 
-      const imgWidth = Math.round(item.width || 1200);
-      const imgHeight = Math.round(item.height || 800);
-      const orientation = imgWidth >= imgHeight ? 'landscape' : 'portrait';
+      // Đọc kích thước thật của ảnh từ Image object
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = item.previewUrl || item.originalImgUrl;
+      });
+      const imgW = img.naturalWidth || img.width || item.width || 1200;
+      const imgH = img.naturalHeight || img.height || item.height || 800;
 
-      // Khởi tạo tài liệu jsPDF theo kích thước pixel 1:1 (đơn vị pt)
-      const doc = new jsPdfClass({
-        orientation: orientation,
+      // Khởi tạo jsPDF theo đúng tỷ lệ pixel của ảnh
+      const doc = new jsPDF({
+        orientation: imgW >= imgH ? 'landscape' : 'portrait',
         unit: 'pt',
-        format: [imgWidth, imgHeight],
+        format: [imgW, imgH],
         compress: true
       });
 
-      // BƯỚC 1: Chèn ảnh bản vẽ gốc làm nền
-      const imgObj = await getCleanImageData(item.originalImgUrl);
-      doc.addImage(imgObj.data, imgObj.format, 0, 0, imgWidth, imgHeight, undefined, 'FAST');
+      // BƯỚC 1: Vẽ ảnh bản vẽ gốc làm nền
+      doc.addImage(img, 'JPEG', 0, 0, imgW, imgH, undefined, 'FAST');
 
-      // BƯỚC 2: Vẽ các ô chữ đè dạng VECTOR TEXT và khung bao
-      const { r, g, b } = hexToRgb(STATE.overlayColor);
-      const textItems = item.ocrData?.textItems || [];
+      // BƯỚC 2: Giải mã màu chữ an toàn (tránh lỗi NaN)
+      let hex = (STATE.overlayColor || '#7c3aed').replace('#', '').trim();
+      if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+      const r = parseInt(hex.substring(0, 2), 16) || 124;
+      const g = parseInt(hex.substring(2, 4), 16) || 58;
+      const b = parseInt(hex.substring(4, 6), 16) || 237;
 
-      if (Array.isArray(textItems) && textItems.length > 0) {
-        for (const t of textItems) {
-          if (!t.boundingBox || !Array.isArray(t.boundingBox)) continue;
+      // BƯỚC 3: Vẽ khung viền và chữ vector nổi rõ ràng trên ảnh
+      const items = item.result?.textItems || item.ocrData?.textItems || [];
+      for (const t of items) {
+        if (!t.boundingBox) continue;
+        try {
+          const [ymin, xmin, ymax, xmax] = t.boundingBox;
+          const x = (xmin / 1000) * imgW;
+          const y = (ymin / 1000) * imgH;
+          const w = Math.max(6, ((xmax - xmin) / 1000) * imgW);
+          const h = Math.max(6, ((ymax - ymin) / 1000) * imgH);
+          const angle = Number(t.rotation) || 0;
 
-          try {
-            // Tọa độ tính theo tỷ lệ 1:1 của trang PDF
-            const [ymin, xmin, ymax, xmax] = t.boundingBox;
-            const x = (xmin / 1000) * imgWidth;
-            const y = (ymin / 1000) * imgHeight;
-            const w = Math.max(((xmax - xmin) / 1000) * imgWidth, 4);
-            const h = Math.max(((ymax - ymin) / 1000) * imgHeight, 4);
-            const angle = Number(t.rotation) || 0;
+          // 1. Vẽ khung chữ nhật viền tím
+          doc.setDrawColor(r, g, b);
+          doc.setLineWidth(1);
+          doc.rect(x, y, w, h);
 
-            // Vẽ khung hình chữ nhật viền màu overlay
-            doc.setDrawColor(r, g, b);
-            doc.setLineWidth(0.75);
-            doc.rect(x, y, w, h);
+          // 2. Chuẩn hóa chuỗi ASCII an toàn để font Helvetica không bị lỗi mã ký tự
+          const rawText = String(t.text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E]/g, ' ').trim();
+          if (!rawText) continue;
 
-            // Vẽ chữ vector thực (có thể bôi đen chuột, copy và tìm kiếm Ctrl+F)
-            doc.setTextColor(r, g, b);
-            doc.setFont("helvetica", "bold");
-            const fontSize = Math.max(5, Math.min(h * 0.75, 14));
-            doc.setFontSize(fontSize);
+          // 3. Tính cỡ chữ khớp với chiều cao ô CAD
+          const fontSize = Math.max(5, Math.min(Math.round(h * 0.8), 24));
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(fontSize);
+          doc.setTextColor(r, g, b);
 
-            // Chuẩn hóa ASCII an toàn để font Helvetica chuẩn không bị lỗi mã ký tự
-            const safeText = String(t.text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, " ").trim();
-
-            if (safeText) {
-              if (angle !== 0) {
-                doc.text(safeText, x, y + h, { angle: angle });
-              } else {
-                doc.text(safeText, x + 1, y + h - (h - fontSize) / 2);
-              }
-            }
-          } catch (itemErr) {
-            console.warn("Bỏ qua lỗi vẽ ô chữ vector:", t.text, itemErr);
+          // 4. Vẽ chữ vector (y trong jsPDF là dòng đáy, cộng thêm 80% chiều cao hộp)
+          if (angle !== 0) {
+            doc.text(rawText, x + 2, y + h * 0.8, { angle: angle });
+          } else {
+            doc.text(rawText, x + 2, y + h * 0.8);
           }
+        } catch (errOneItem) {
+          console.warn("Bỏ qua lỗi vẽ 1 ô text:", errOneItem);
         }
       }
 
-      // BƯỚC 3: Xuất file PDF dưới dạng Blob
+      // BƯỚC 4: Trả về file Blob PDF hợp lệ
       return doc.output('blob');
+    }
+
+    // Hàm tiện ích tải Blob an toàn
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
     }
 
     // --- XỬ LÝ KHI FILE ĐƯỢC CHỌN HOẶC KÉO THẢ VÀO ---
@@ -540,10 +527,12 @@
             file: file,
             name: file.name,
             originalImgUrl: dataUrl,
+            previewUrl: dataUrl,
             width: dimensions.width,
             height: dimensions.height,
             status: 'Chờ',
             ocrData: null,
+            result: null,
             errorMsg: null
           };
 
@@ -603,7 +592,7 @@
 
         itemEl.innerHTML = `
           <div class="flex items-center gap-2.5 overflow-hidden flex-1">
-            <img src="${item.originalImgUrl}" class="w-10 h-10 rounded object-cover border border-slate-700 flex-shrink-0 bg-slate-900" />
+            <img src="${item.previewUrl || item.originalImgUrl}" class="w-10 h-10 rounded object-cover border border-slate-700 flex-shrink-0 bg-slate-900" />
             <div class="overflow-hidden flex-1">
               <p class="text-xs font-medium text-slate-200 truncate" title="${item.name}">${item.name}</p>
               <div class="flex items-center gap-2 mt-1">
@@ -644,19 +633,19 @@
       const item = STATE.queue[index];
       dom.emptyPreviewNotice.classList.add('hidden');
       dom.previewImage.classList.remove('hidden');
-      dom.previewImage.src = item.originalImgUrl;
+      dom.previewImage.src = item.previewUrl || item.originalImgUrl;
       dom.currentImageName.textContent = item.name;
       dom.imageResolution.textContent = `${item.width} × ${item.height} px`;
 
       // Nút Tải PDF Overlay luôn mở khi chọn bản vẽ
       dom.btnExportSinglePdf.disabled = false;
 
-      const hasOcr = !!item.ocrData;
+      const hasOcr = !!(item.ocrData || item.result);
       dom.btnExportSingleTxt.disabled = !hasOcr;
       dom.btnExportTitleBlockTxt.disabled = !hasOcr;
 
       if (hasOcr) {
-        populateExtractedText(item.ocrData, item.height);
+        populateExtractedText(item.ocrData || item.result, item.height);
       } else {
         dom.textContent1.value = item.status === 'Lỗi' ? `Lỗi: ${item.errorMsg}` : '';
         dom.textTitleBlock.value = '';
@@ -722,13 +711,14 @@
       dom.overlayLayer.innerHTML = '';
       if (STATE.selectedIndex === -1) return;
       const item = STATE.queue[STATE.selectedIndex];
-      if (!item.ocrData || !item.ocrData.textItems) return;
+      const items = item.result?.textItems || item.ocrData?.textItems || [];
+      if (items.length === 0) return;
 
       const imgWidth = dom.previewImage.clientWidth;
       const imgHeight = dom.previewImage.clientHeight;
       if (!imgWidth || !imgHeight) return;
 
-      item.ocrData.textItems.forEach(tItem => {
+      items.forEach(tItem => {
         const [ymin, xmin, ymax, xmax] = tItem.boundingBox;
         const boxTop = (ymin / 1000) * imgHeight;
         const boxLeft = (xmin / 1000) * imgWidth;
@@ -742,6 +732,7 @@
         span.style.width = `${boxWidth}px`;
         span.style.height = `${boxHeight}px`;
         span.style.color = STATE.overlayColor;
+        span.style.border = `1px solid ${STATE.overlayColor}`;
         span.style.fontSize = `${Math.max(boxHeight * 0.85, 9)}px`;
         span.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
         if (tItem.rotation) {
@@ -788,13 +779,13 @@
 
       for (let i = 0; i < STATE.queue.length; i++) {
         const item = STATE.queue[i];
-        if (item.status === 'Hoàn tất' && item.ocrData) continue;
+        if (item.status === 'Hoàn tất' && (item.ocrData || item.result)) continue;
 
         item.status = 'Đang đọc...';
         renderQueueList();
 
         try {
-          const { base64Data, mimeType } = await prepareOptimizedBase64(item.originalImgUrl);
+          const { base64Data, mimeType } = await prepareOptimizedBase64(item.previewUrl || item.originalImgUrl);
 
           let ocrResult = null;
           try {
@@ -805,6 +796,7 @@
           }
 
           item.ocrData = ocrResult;
+          item.result = ocrResult;
           item.status = 'Hoàn tất';
           item.errorMsg = null;
 
@@ -812,6 +804,7 @@
           console.error(err);
           item.status = 'Hoàn tất';
           item.ocrData = { textItems: [] };
+          item.result = { textItems: [] };
         }
 
         renderQueueList();
@@ -931,27 +924,16 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
       });
     }
 
-    function triggerDownload(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-    }
-
-    // 3. Tải lẻ trực tiếp PDF bản vẽ theo index (Vector Text thực thụ)
+    // 3. Tải lẻ trực tiếp PDF bản vẽ theo index (KÍCH HOẠT TẢI NGAY)
     async function downloadSingleItemPdf(index) {
-      const item = STATE.queue[index];
-      if (!item) return;
+      const activeItem = STATE.queue[index];
+      if (!activeItem) return;
 
       try {
-        const pdfBlob = await generatePdfOverlay(item);
-        if (!pdfBlob) return;
-        const cleanName = item.name.replace(/\.[^/.]+$/, '');
-        triggerDownload(pdfBlob, `${cleanName}_overlay.pdf`);
+        const blob = await generatePdfOverlay(activeItem);
+        if (blob) {
+          downloadBlob(blob, activeItem.name.replace(/\.[^/.]+$/, "") + "_overlay.pdf");
+        }
       } catch (err) {
         console.error("Lỗi xuất PDF lẻ:", err);
         alert("Lỗi tạo PDF: " + (err.message || err));
@@ -961,11 +943,18 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
     // Nút Tải PDF Overlay trên thanh công cụ
     async function exportSinglePdf() {
       if (STATE.selectedIndex === -1) return;
+      const activeItem = STATE.queue[STATE.selectedIndex];
       const originalText = dom.btnExportSinglePdfText.textContent;
       try {
         dom.btnExportSinglePdf.disabled = true;
         dom.btnExportSinglePdfText.textContent = "Đang tạo...";
-        await downloadSingleItemPdf(STATE.selectedIndex);
+        const blob = await generatePdfOverlay(activeItem);
+        if (blob) {
+          downloadBlob(blob, activeItem.name.replace(/\.[^/.]+$/, "") + "_overlay.pdf");
+        }
+      } catch (err) {
+        console.error("Lỗi xuất PDF:", err);
+        alert("Lỗi tạo PDF: " + (err.message || err));
       } finally {
         dom.btnExportSinglePdf.disabled = false;
         dom.btnExportSinglePdfText.textContent = originalText;
@@ -976,14 +965,14 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
       if (STATE.selectedIndex === -1) return;
       const item = STATE.queue[STATE.selectedIndex];
       const blob = new Blob([dom.textContent1.value || ''], { type: 'text/plain;charset=utf-8' });
-      triggerDownload(blob, `${item.name.replace(/\.[^/.]+$/, '')}.txt`);
+      downloadBlob(blob, `${item.name.replace(/\.[^/.]+$/, '')}.txt`);
     }
 
     function exportSingleTitleBlock() {
       if (STATE.selectedIndex === -1) return;
       const item = STATE.queue[STATE.selectedIndex];
       const blob = new Blob([dom.textTitleBlock.value || ''], { type: 'text/plain;charset=utf-8' });
-      triggerDownload(blob, `${item.name.replace(/\.[^/.]+$/, '')}_khung_ten.txt`);
+      downloadBlob(blob, `${item.name.replace(/\.[^/.]+$/, '')}_khung_ten.txt`);
     }
 
     // --- QUY CHUẨN GÓI ZIP "Tất cả (.ZIP)": ĐỦ BỘ 3 FILE MỖI BẢN VẼ ---
@@ -1012,7 +1001,7 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
           const prefix = `${stt}_${cleanName}`;
 
           // File 1: Text 1 cột
-          const textItems = item.ocrData?.textItems || [];
+          const textItems = item.result?.textItems || item.ocrData?.textItems || [];
           const sortedItems = [...textItems].sort((a, b) => a.boundingBox[0] - b.boundingBox[0]);
           const fullTxt = sortedItems.map(it => it.text.trim()).join('\n');
           zip.file(`${prefix}.txt`, fullTxt || '[Bản vẽ chưa nhận dạng hoặc không có chữ]');
@@ -1022,11 +1011,11 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
           const tbTxt = tbItems.map(it => it.text.trim()).join('\n');
           zip.file(`${prefix}_khung_ten.txt`, tbTxt || '[Không phát hiện khung tên]');
 
-          // File 3: PDF Vector Overlay (Đưa trực tiếp Blob PDF vào zip)
+          // File 3: PDF Vector Overlay (Thêm trực tiếp blob vào file nén JSZip)
           try {
-            const pdfBlob = await generatePdfOverlay(item);
-            if (pdfBlob) {
-              zip.file(`${prefix}_overlay.pdf`, pdfBlob);
+            const blob = await generatePdfOverlay(item);
+            if (blob) {
+              zip.file(`${prefix}_overlay.pdf`, blob);
             }
           } catch (pdfErr) {
             console.error(`Bỏ qua lỗi xuất PDF bản vẽ ${cleanName}:`, pdfErr);
@@ -1034,7 +1023,7 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
         }
 
         const zipContent = await zip.generateAsync({ type: 'blob' });
-        triggerDownload(zipContent, `CAD_Batch_All_v25.0_${Date.now()}.zip`);
+        downloadBlob(zipContent, `CAD_Batch_All_v26.0_${Date.now()}.zip`);
       } catch (err) {
         console.error("Lỗi khi tạo gói All ZIP:", err);
         alert("Lỗi xuất gói ZIP: " + (err.message || err));
@@ -1070,9 +1059,9 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
           const prefix = `${stt}_${cleanName}`;
 
           try {
-            const pdfBlob = await generatePdfOverlay(item);
-            if (pdfBlob) {
-              zip.file(`${prefix}_overlay.pdf`, pdfBlob);
+            const blob = await generatePdfOverlay(item);
+            if (blob) {
+              zip.file(`${prefix}_overlay.pdf`, blob);
             }
           } catch (pdfErr) {
             console.error(`Bỏ qua lỗi xuất PDF bản vẽ ${cleanName}:`, pdfErr);
@@ -1080,7 +1069,7 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
         }
 
         const zipContent = await zip.generateAsync({ type: 'blob' });
-        triggerDownload(zipContent, `CAD_PDF_Overlays_v25.0_${Date.now()}.zip`);
+        downloadBlob(zipContent, `CAD_PDF_Overlays_v26.0_${Date.now()}.zip`);
       } catch (err) {
         console.error("Lỗi khi tạo gói PDF ZIP:", err);
         alert("Lỗi xuất PDF ZIP: " + (err.message || err));
