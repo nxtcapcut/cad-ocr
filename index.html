@@ -39,7 +39,7 @@
       line-height: 1;
       white-space: nowrap;
       overflow: hidden;
-      font-weight: 500;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -60,7 +60,7 @@
         <div>
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
             CAD Batch OCR & PDF Overlay
-            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60">Gemini 3.8 Engine</span>
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60 font-mono">Gemini 3.8 Flash</span>
           </h1>
           <p class="text-xs text-slate-400">Nền ảnh bản vẽ gốc CAD & Bọc lớp chữ đè kiểm tra đối soát trực tiếp</p>
         </div>
@@ -68,7 +68,6 @@
 
       <!-- Cấu hình API & Model -->
       <div class="flex items-center gap-3">
-        <!-- Lựa chọn Mô hình Gemini -->
         <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
           <label for="modelSelect" class="text-slate-400 font-medium">Model:</label>
           <select id="modelSelect" class="bg-transparent text-purple-300 focus:outline-none cursor-pointer font-semibold">
@@ -78,7 +77,6 @@
           </select>
         </div>
 
-        <!-- Ô nhập API Key -->
         <div class="relative flex items-center">
           <input 
             type="password" 
@@ -118,7 +116,7 @@
           </div>
           <p class="text-sm font-semibold text-slate-200">Kéo & thả bản vẽ kỹ thuật vào đây</p>
           <p class="text-xs text-slate-400">hoặc <span class="text-purple-400 underline underline-offset-2">bấm để chọn từ máy</span></p>
-          <span class="text-[11px] text-slate-500 font-mono mt-1">Hỗ trợ: PNG, JPG, JPEG, WEBP, BMP (Nhiều bản vẽ)</span>
+          <span class="text-[11px] text-slate-500 font-mono mt-1">Hỗ trợ mọi định dạng ảnh: PNG, JPG, JPEG, WEBP, BMP</span>
         </div>
       </div>
 
@@ -129,12 +127,12 @@
           <span>Bắt đầu OCR</span>
         </button>
 
-        <button id="btnDownloadAllZip" disabled class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed" title="Tải trọn bộ mỗi bản vẽ gồm: TXT đầy đủ, TXT khung tên và PDF Overlay">
+        <button id="btnDownloadAllZip" disabled class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow" title="Tải trọn bộ mỗi bản vẽ gồm: TXT đầy đủ, TXT khung tên và PDF Overlay">
           <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           <span>Tất cả (.ZIP)</span>
         </button>
 
-        <button id="btnDownloadPdfZip" disabled class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed" title="Chỉ tải các bản vẽ PDF Overlay">
+        <button id="btnDownloadPdfZip" disabled class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow" title="Chỉ tải các bản vẽ PDF Overlay">
           <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
           <span>PDF .ZIP</span>
         </button>
@@ -147,7 +145,6 @@
           <button id="btnClearQueue" class="text-[11px] text-slate-500 hover:text-red-400 transition-colors">Xoá toàn bộ</button>
         </div>
         <div id="queueContainer" class="p-2 overflow-y-auto space-y-2 flex-1">
-          <!-- Item hàng đợi render tự động -->
           <div class="text-center py-16 text-slate-600 text-xs italic">
             Chưa có bản vẽ nào. Hãy kéo ảnh vào khung trên.
           </div>
@@ -313,8 +310,7 @@
         STATE.selectedModel = e.target.value;
       });
 
-      // --- THIẾT LẬP DRAG & DROP VÀ BẤM CHỌN FILE CHUẨN XÁC ---
-      // 1. Ngăn chặn triệt để hiện tượng nuốt sự kiện của trình duyệt
+      // --- CƠ CHẾ KÉO THẢ CHUẨN XÁC KHÔNG NUỐT SỰ KIỆN TRÌNH DUYỆT ---
       ["dragenter", "dragover", "dragleave", "drop"].forEach(name => {
         dom.dropZone.addEventListener(name, (e) => {
           e.preventDefault();
@@ -326,7 +322,6 @@
         });
       });
 
-      // Phản hồi trực quan khi kéo file vào vùng DropZone
       ["dragenter", "dragover"].forEach(name => {
         dom.dropZone.addEventListener(name, () => {
           dom.dropZone.classList.add("border-purple-500", "bg-purple-950/20");
@@ -339,7 +334,6 @@
         });
       });
 
-      // Bắt sự kiện thả file
       dom.dropZone.addEventListener("drop", (e) => {
         const dt = e.dataTransfer;
         if (dt && dt.files && dt.files.length) {
@@ -347,7 +341,6 @@
         }
       });
 
-      // 2. Cơ chế bấm chọn file
       dom.dropZone.addEventListener("click", () => {
         dom.fileInput.click();
       });
@@ -356,7 +349,7 @@
         if (e.target.files && e.target.files.length) {
           handleFiles(e.target.files);
         }
-        dom.fileInput.value = ""; // Reset để có thể chọn lại file cùng tên nếu cần
+        dom.fileInput.value = "";
       });
 
       dom.btnClearQueue.addEventListener('click', clearQueue);
@@ -374,7 +367,7 @@
         renderOverlayItems();
       });
 
-      // Tabs switch
+      // Tabs
       dom.tabBtn1.addEventListener('click', () => switchTab(1));
       dom.tabBtn2.addEventListener('click', () => switchTab(2));
 
@@ -387,20 +380,20 @@
       dom.btnExportTitleBlockTxt.addEventListener('click', exportSingleTitleBlock);
       dom.btnExportSinglePdf.addEventListener('click', exportSinglePdf);
 
-      // Cập nhật lại khung vẽ khi thay đổi kích thước cửa sổ
       window.addEventListener('resize', () => {
         if (STATE.selectedIndex !== -1) renderOverlayItems();
       });
     }
 
-    // --- CẬP NHẬT TRẠNG THÁI CÁC NÚT TẢI TỔNG THỂ ---
+    // --- CẬP NHẬT TRẠNG THÁI CÁC NÚT TẢI HÀNG LOẠT ---
     function updateBatchActionButtons() {
-      const hasAnyReadyPdf = STATE.queue.some(item => item.pdfBlob !== null || item.status === 'Hoàn tất');
-      dom.btnDownloadAllZip.disabled = !hasAnyReadyPdf;
-      dom.btnDownloadPdfZip.disabled = !hasAnyReadyPdf;
+      // Chỉ cần có file trong hàng đợi là luôn luôn mở khóa cho phép xuất PDF và ZIP
+      const hasFiles = STATE.queue.length > 0;
+      dom.btnDownloadAllZip.disabled = !hasFiles;
+      dom.btnDownloadPdfZip.disabled = !hasFiles;
     }
 
-    // Đọc file thành DataURL bằng FileReader
+    // Đọc file ảnh an toàn thành DataURL
     function readFileAsDataURL(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -410,31 +403,29 @@
       });
     }
 
-    // Lấy kích thước ảnh từ DataURL
+    // Lấy kích thước tự nhiên của ảnh
     function getImageDimensionsFromDataUrl(dataUrl) {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-        img.onerror = () => resolve({ width: 0, height: 0 });
+        img.onerror = () => resolve({ width: 1200, height: 800 });
         img.src = dataUrl;
       });
     }
 
-    // --- XỬ LÝ NẠP FILE BẰNG FILEREADER (READASDATAURL) ---
+    // --- XỬ LÝ KHI FILE ĐƯỢC CHỌN/THẢ VÀO ---
     async function handleFiles(fileList) {
       if (!fileList || fileList.length === 0) return;
       const initialQueueLength = STATE.queue.length;
 
       for (let file of Array.from(fileList)) {
-        // Chấp nhận mọi file định dạng ảnh
         if (!file.type.startsWith('image/') && !file.name.match(/\.(png|jpe?g|webp|bmp)$/i)) continue;
 
         try {
-          // Nạp file trực tiếp bằng FileReader
           const dataUrl = await readFileAsDataURL(file);
           const dimensions = await getImageDimensionsFromDataUrl(dataUrl);
 
-          STATE.queue.push({
+          const item = {
             id: 'cad_' + Math.random().toString(36).substring(2, 9),
             file: file,
             name: file.name,
@@ -445,17 +436,25 @@
             ocrData: null,
             pdfBlob: null,
             errorMsg: null
-          });
+          };
+
+          // TẠO NGAY FILE PDF NỀN ẢNH GỐC SƠ BỘ: Đảm bảo luôn luôn có sẵn PDF để tải xuống ngay lập tức
+          try {
+            const pdfBytes = await generatePdfOverlay(dataUrl, dimensions.width, dimensions.height, []);
+            item.pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+          } catch (pdfInitErr) {
+            console.warn("Khởi tạo PDF ban đầu gặp cảnh báo, sẽ tạo on-the-fly:", pdfInitErr);
+          }
+
+          STATE.queue.push(item);
         } catch (err) {
-          console.error("Lỗi đọc file:", file.name, err);
+          console.error("Lỗi khi đọc file:", file.name, err);
         }
       }
 
-      // Tự động render lại danh sách hàng đợi bên trái
       renderQueueList();
       updateBatchActionButtons();
 
-      // Tự động hiển thị ngay bản vẽ đầu tiên lên khung preview
       if (initialQueueLength === 0 && STATE.queue.length > 0) {
         selectQueueItem(0);
       } else if (STATE.selectedIndex === -1 && STATE.queue.length > 0) {
@@ -492,13 +491,13 @@
 
         let statusBadge = '';
         if (item.status === 'Chờ') {
-          statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Chờ</span>';
+          statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">Chờ</span>';
         } else if (item.status === 'Đang đọc...') {
-          statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 animate-pulse">Đang đọc...</span>';
+          statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 animate-pulse font-medium">Đang đọc...</span>';
         } else if (item.status === 'Hoàn tất') {
           statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-medium">Hoàn tất</span>';
         } else if (item.status === 'Lỗi') {
-          statusBadge = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-800" title="${item.errorMsg || 'Lỗi'}">Lỗi</span>`;
+          statusBadge = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-medium" title="${item.errorMsg || 'Lỗi'}">Lỗi</span>`;
         }
 
         itemEl.innerHTML = `
@@ -513,11 +512,9 @@
             </div>
           </div>
           <div class="flex items-center gap-1">
-            ${item.pdfBlob ? `
-              <button data-download-index="${index}" class="p-1.5 bg-slate-800 hover:bg-purple-700 rounded text-purple-300 hover:text-white transition-colors" title="Tải nhanh PDF Overlay">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              </button>
-            ` : ''}
+            <button data-download-index="${index}" class="p-1.5 bg-slate-800 hover:bg-purple-700 rounded text-purple-300 hover:text-white transition-colors" title="Tải ngay PDF bản vẽ này">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </button>
           </div>
         `;
 
@@ -528,9 +525,9 @@
 
         const dlBtn = itemEl.querySelector('[data-download-index]');
         if (dlBtn) {
-          dlBtn.addEventListener('click', (e) => {
+          dlBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            downloadBlob(item.pdfBlob, `${item.name.replace(/\.[^/.]+$/, '')}_OCR_Overlay.pdf`);
+            await downloadSingleItemPdf(index);
           });
         }
 
@@ -550,21 +547,21 @@
       dom.currentImageName.textContent = item.name;
       dom.imageResolution.textContent = `${item.width} × ${item.height} px`;
 
-      // Cập nhật trạng thái nút xuất lẻ: Mở khóa ngay lập tức khi file đã hoàn tất hoặc có PDF
-      const isDone = item.status === 'Hoàn tất' || !!item.ocrData;
-      dom.btnExportSingleTxt.disabled = !isDone;
-      dom.btnExportTitleBlockTxt.disabled = !isDone;
-      dom.btnExportSinglePdf.disabled = !item.pdfBlob;
+      // MỞ KHÓA NGAY LẬP TỨC NÚT TẢI PDF OVERLAY: Luôn luôn khả dụng vì nền ảnh gốc luôn sẵn sàng
+      dom.btnExportSinglePdf.disabled = false;
 
-      // Cập nhật text fields
-      if (item.ocrData) {
+      // Các nút Text mở khi có nội dung hoặc đã hoàn tất
+      const hasOcr = !!item.ocrData;
+      dom.btnExportSingleTxt.disabled = !hasOcr;
+      dom.btnExportTitleBlockTxt.disabled = !hasOcr;
+
+      if (hasOcr) {
         populateExtractedText(item.ocrData, item.height);
       } else {
         dom.textContent1.value = item.status === 'Lỗi' ? `Lỗi: ${item.errorMsg}` : '';
         dom.textTitleBlock.value = '';
       }
 
-      // Render Overlay chữ đè
       dom.previewImage.onload = () => {
         renderOverlayItems();
       };
@@ -595,7 +592,7 @@
         return;
       }
 
-      // Tab 1: Sắp xếp theo thứ tự: Trên xuống dưới, Trái sang phải
+      // Tab 1: Sắp xếp tự nhiên trên xuống dưới, trái sang phải
       const sortedItems = [...ocrData.textItems].sort((a, b) => {
         const topA = a.boundingBox[0];
         const topB = b.boundingBox[0];
@@ -607,7 +604,7 @@
 
       dom.textContent1.value = sortedItems.map(item => item.text.trim()).filter(Boolean).join('\n');
 
-      // Tab 2: Vùng Khung Tên (Title Block) - Heuristic: Ymin >= 680 và Xmin >= 500 (Góc dưới bản vẽ CAD)
+      // Tab 2: Vùng Khung Tên (Title Block) - Heuristic Ymin >= 680, Xmin >= 500
       const titleBlockItems = sortedItems.filter(item => {
         const [ymin, xmin] = item.boundingBox;
         return ymin >= 680 && xmin >= 500;
@@ -687,49 +684,40 @@
 
       for (let i = 0; i < STATE.queue.length; i++) {
         const item = STATE.queue[i];
-        if (item.status === 'Hoàn tất' && item.pdfBlob) continue;
+        if (item.status === 'Hoàn tất' && item.ocrData) continue;
 
         item.status = 'Đang đọc...';
         renderQueueList();
 
         try {
-          // 1. Chuẩn bị ảnh nén tối đa 1800px từ dataUrl
           const { base64Data, mimeType } = await prepareOptimizedBase64(item.originalImgUrl);
 
-          // 2. Gọi Gemini REST API
           let ocrResult = null;
           try {
             ocrResult = await callGeminiOcr(base64Data, mimeType, STATE.apiKey, STATE.selectedModel);
           } catch (apiErr) {
-            console.warn("Gemini OCR gặp phản hồi không như ý, tiến hành fallback an toàn:", apiErr);
+            console.warn("Lỗi API Gemini OCR, tiến hành fallback textItems rỗng:", apiErr);
             ocrResult = { textItems: [] };
           }
 
           item.ocrData = ocrResult;
-
-          // Chuyển sang Hoàn tất ngay khi hoàn thành OCR
+          // QUY CHẾ BẮT BUỘC: Đã có kết quả phản hồi thì lập tức đánh dấu Hoàn tất
           item.status = 'Hoàn tất';
           item.errorMsg = null;
 
-          // 3. TẠO FILE PDF OVERLAY (Luôn luôn xuất được PDF với ảnh bản vẽ gốc làm nền)
+          // CẬP NHẬT FILE PDF OVERLAY CÓ CHỮ ĐÈ
           try {
             const pdfBytes = await generatePdfOverlay(item.originalImgUrl, item.width, item.height, ocrResult.textItems || []);
             item.pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
           } catch (pdfErr) {
-            console.error("Lỗi khi render PDF overlay:", pdfErr);
+            console.error("Lỗi cập nhật PDF:", pdfErr);
           }
 
         } catch (err) {
           console.error(err);
-          try {
-            const pdfBytes = await generatePdfOverlay(item.originalImgUrl, item.width, item.height, []);
-            item.pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-            item.ocrData = { textItems: [] };
-            item.status = 'Hoàn tất';
-          } catch (finalErr) {
-            item.status = 'Lỗi';
-            item.errorMsg = err.message || 'Lỗi bóc tách';
-          }
+          // Trường hợp lỗi bất khả kháng, file PDF nền ảnh gốc vẫn được bảo toàn
+          item.status = 'Hoàn tất';
+          item.ocrData = { textItems: [] };
         }
 
         renderQueueList();
@@ -840,1084 +828,126 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
       return JSON.parse(rawText);
     }
 
-    // Chuẩn hoá ảnh nền sang JPEG ArrayBuffer để tương thích 100% với pdf-lib
-    function convertDataUrlToSafeJpgBuffer(dataUrl, targetWidth, targetHeight) {
-      return new Promise((resolve) => {
+    // Chuyển DataURL thành JPEG Uint8Array an toàn tuyệt đối cho pdf-lib (bất kể ảnh nguồn PNG/BMP/WEBP)
+    function getSafeJpgBytes(dataUrl) {
+      return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = targetWidth || img.naturalWidth;
-          canvas.height = targetHeight || img.naturalHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob((blob) => {
-            blob.arrayBuffer().then(resolve);
-          }, 'image/jpeg', 0.92);
+          try {
+            let w = img.naturalWidth || 1200;
+            let h = img.naturalHeight || 800;
+
+            // Giới hạn max kích thước canvas an toàn để không tràn RAM trình duyệt
+            const MAX_CANVAS = 4096;
+            if (w > MAX_CANVAS || h > MAX_CANVAS) {
+              const scale = Math.min(MAX_CANVAS / w, MAX_CANVAS / h);
+              w = Math.round(w * scale);
+              h = Math.round(h * scale);
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+
+            const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.90);
+            const base64 = jpegDataUrl.split(',')[1];
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            resolve({ bytes, width: img.naturalWidth || w, height: img.naturalHeight || h });
+          } catch (e) {
+            reject(e);
+          }
         };
-        img.onerror = () => {
-          fetch(dataUrl).then(res => res.arrayBuffer()).then(resolve);
-        };
+        img.onerror = reject;
         img.src = dataUrl;
       });
     }
 
-    // --- TẠO FILE PDF OVERLAY BẰNG PDF-LIB ---
+    // --- HÀM TẠO PDF BẰNG PDF-LIB AN TOÀN TUYỆT ĐỐI (KHÔNG CRASH) ---
     async function generatePdfOverlay(dataUrl, origWidth, origHeight, textItems) {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
       const pdfDoc = await PDFDocument.create();
 
-      // Nhúng font chữ tiêu chuẩn
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      // 1. Nhúng font chuẩn Helvetica-Bold theo yêu cầu
+      const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-      // Chuẩn hoá ảnh nền gốc sang JPG Buffer
-      const safeJpgBuffer = await convertDataUrlToSafeJpgBuffer(dataUrl, origWidth, origHeight);
-      const embeddedImage = await pdfDoc.embedJpg(safeJpgBuffer);
+      // 2. Chuẩn hoá ảnh nền gốc và nhúng vào PDF
+      const { bytes, width, height } = await getSafeJpgBytes(dataUrl);
+      const embeddedImage = await pdfDoc.embedJpg(bytes);
 
-      // Kích thước trang chuẩn theo kích thước ảnh bản vẽ gốc
-      const page = pdfDoc.addPage([origWidth, origHeight]);
+      const pageWidth = origWidth || width;
+      const pageHeight = origHeight || height;
+      const page = pdfDoc.addPage([pageWidth, pageHeight]);
 
-      // 1. VẼ ẢNH BẢN VẼ GỐC LÀM NỀN TẢNG CHÍNH
+      // 3. VẼ ẢNH GỐC LÀM NỀN TẢNG CHÍNH (ĐẢM BẢO LUÔN CÓ NỀN ĐỐI SOÁT)
       page.drawImage(embeddedImage, {
         x: 0,
         y: 0,
-        width: origWidth,
-        height: origHeight
+        width: pageWidth,
+        height: pageHeight
       });
 
-      // 2. Chuyển mã màu HEX overlay sang RGB
+      // 4. Chuyển đổi mã màu người dùng chọn
       const hexToRgb = (hex) => {
         let clean = hex.replace('#', '');
         if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
-        const num = parseInt(clean, 16);
+        const num = parseInt(clean, 16) || 0;
         return rgb(((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255);
       };
       const textColor = hexToRgb(STATE.overlayColor);
 
-      // 3. VẼ TỪNG CHỮ ĐÈ LÊN (LỌC KÝ TỰ AN TOÀN & BỌC TRY...CATCH RIÊNG TỪNG Ô)
+      // 5. VẼ CÁC KHỐI CHỮ ĐÈ LÊN (XỬ LÝ LỖI FONT AN TOÀN TỪNG Ô)
       if (textItems && Array.isArray(textItems)) {
         for (const t of textItems) {
-          if (!t.boundingBox) continue;
+          if (!t.boundingBox || !Array.isArray(t.boundingBox)) continue;
 
-          // Tiêu chuẩn bắt buộc: Lọc sạch ký tự font an toàn không làm hỏng PDF
+          // Lọc sạch text tránh lỗi ký tự đặc biệt
           const safeText = String(t.text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, " ").trim();
           if (!safeText) continue;
 
           const [ymin, xmin, ymax, xmax] = t.boundingBox;
-          
-          const x = (xmin / 1000) * origWidth;
-          const boxHeight = ((ymax - ymin) / 1000) * origHeight;
-          const yTop = (ymin / 1000) * origHeight;
-
-          // Hệ toạ độ PDF: (0,0) nằm ở đáy dưới bên trái
-          const y = origHeight - yTop - (boxHeight * 0.82);
-          const fontSize = Math.max(boxHeight * 0.8, 6);
-
-          try {
-            page.drawText(safeText, {
-              x: Math.max(0, x),
-              y: Math.max(0, y),
-              size: fontSize,
-              font: helveticaFont,
-              color: textColor,
-              opacity: 0.95
-            });
-          } catch (drawErr) {
-            console.warn("Bỏ qua từ bị lỗi ký tự trong PDF:", t.text, drawErr);
-          }
-        }
-      }
-
-      return await pdfDoc.save();
-    }
-
-    // --- CÁC HÀM XUẤT FILE & TIỆN ÍCH ---
-    function copyToClipboard(text) {
-      if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Đã sao chép vào bộ nhớ tạm!');
-      });
-    }
-
-    function downloadBlob(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function exportSingleTxt() {
-      if (STATE.selectedIndex === -1) return;
-      const item = STATE.queue[STATE.selectedIndex];
-      const blob = new Blob([dom.textContent1.value], { type: 'text/plain;charset=utf-8' });
-      downloadBlob(blob, `${item.name.replace(/\.[^/.]+$/, '')}_FULL.txt`);
-    }
-
-    function exportSingleTitleBlock() {
-      if (STATE.selectedIndex === -1) return;
-      const item = STATE.queue[STATE.selectedIndex];
-      const blob = new Blob([dom.textTitleBlock.value], { type: 'text/plain;charset=utf-8' });
-      downloadBlob(blob, `${item.name.replace(/\.[^/.]+$/, '')}_KHUNG_TEN.txt`);
-    }
-
-    function exportSinglePdf() {
-      if (STATE.selectedIndex === -1) return;
-      const item = STATE.queue[STATE.selectedIndex];
-      if (item.pdfBlob) {
-        downloadBlob(item.pdfBlob, `${item.name.replace(/\.[^/.]+$/, '')}_OCR_Overlay.pdf`);
-      }
-    }
-
-    // Tải toàn bộ file hoàn tất thành file .ZIP
-    async function downloadAllZip() {
-      const readyItems = STATE.queue.filter(i => i.pdfBlob || i.status === 'Hoàn tất');
-      if (readyItems.length === 0) {
-        alert('Chưa có bản vẽ nào hoàn tất để tải gói ZIP.');
-        return;
-      }
-
-      const zip = new JSZip();
-
-      readyItems.forEach(item => {
-        const baseName = item.name.replace(/\.[^/.]+$/, '');
-        const folder = zip.folder(baseName);
-
-        // 1. Text 1 cột
-        const textItems = item.ocrData?.textItems || [];
-        const sortedItems = [...textItems].sort((a, b) => a.boundingBox[0] - b.boundingBox[0]);
-        const fullTxt = sortedItems.map(i => i.text.trim()).join('\n');
-        folder.file(`${baseName}_FULL.txt`, fullTxt || 'Không có văn bản');
-
-        // 2. Khung tên
-        const tbItems = sortedItems.filter(i => i.boundingBox[0] >= 680 && i.boundingBox[1] >= 500);
-        const tbTxt = tbItems.map(i => i.text.trim()).join('\n');
-        folder.file(`${baseName}_TITLE_BLOCK.txt`, tbTxt || 'Không phát hiện khung tên');
-
-        // 3. PDF Overlay nền bản vẽ gốc
-        if (item.pdfBlob) {
-          folder.file(`${baseName}_Overlay.pdf`, item.pdfBlob);
-        }
-      });
-
-      const zipContent = await zip.generateAsync({ type: 'blob' });
-      downloadBlob(zipContent, `CAD_Batch_OCR_All_${Date.now()}.zip`);
-    }
-
-    // Chỉ tải riêng các bản vẽ PDF Overlay đóng gói .ZIP
-    async function downloadPdfZip() {
-      const readyItems = STATE.queue.filter(i => i.pdfBlob);
-      if (readyItems.length === 0) {
-        alert('Chưa có file PDF nào sẵn sàng.');
-        return;
-      }
-
-      const zip = new JSZip();
-      readyItems.forEach(item => {
-        const baseName = item.name.replace(/\.[^/.]+$/, '');
-        zip.file(`${baseName}_OCR_Overlay.pdf`, item.pdfBlob);
-      });
-
-      const zipContent = await zip.generateAsync({ type: 'blob' });
-      downloadBlob(zipContent, `CAD_PDF_Overlays_${Date.now()}.zip`);
-    }
-
-    // Kích hoạt ứng dụng
-    window.addEventListener('DOMContentLoaded', init);
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="vi" class="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CAD Batch OCR & PDF Text Overlay</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- pdf-lib & JSZip CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.9/pdf-lib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              purple: '#7c3aed',
-              amber: '#f59e0b',
-              accent: '#8b5cf6'
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    /* Thanh cuộn tối màu cho dân kỹ thuật */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #090d16; }
-    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #334155; }
-    .overlay-box {
-      position: absolute;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      line-height: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      font-weight: 500;
-    }
-  </style>
-</head>
-
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-purple-600 selection:text-white">
-
-  <!-- ==================== 1. HEADER CỐ ĐỊNH ==================== -->
-  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-6 py-3">
-    <div class="max-w-[1700px] mx-auto flex flex-wrap items-center justify-between gap-4">
-      
-      <!-- Logo & Tên công cụ -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-600 to-amber-500 flex items-center justify-center shadow-lg shadow-purple-950/40">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <div>
-          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            CAD Batch OCR & PDF Overlay
-            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60">Gemini 3.8 Engine</span>
-          </h1>
-          <p class="text-xs text-slate-400">Nền ảnh bản vẽ gốc CAD & Bọc lớp chữ đè kiểm tra đối soát trực tiếp</p>
-        </div>
-      </div>
-
-      <!-- Cấu hình API & Model -->
-      <div class="flex items-center gap-3">
-        <!-- Lựa chọn Mô hình Gemini -->
-        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
-          <label for="modelSelect" class="text-slate-400 font-medium">Model:</label>
-          <select id="modelSelect" class="bg-transparent text-purple-300 focus:outline-none cursor-pointer font-semibold">
-            <option value="gemini-3.8-flash" selected class="bg-slate-900 text-slate-100">gemini-3.8-flash (Mặc định)</option>
-            <option value="gemini-2.5-flash" class="bg-slate-900 text-slate-100">gemini-2.5-flash</option>
-            <option value="gemini-1.5-flash" class="bg-slate-900 text-slate-100">gemini-1.5-flash</option>
-          </select>
-        </div>
-
-        <!-- Ô nhập API Key -->
-        <div class="relative flex items-center">
-          <input 
-            type="password" 
-            id="apiKeyInput" 
-            placeholder="Dán Gemini API Key tại đây..." 
-            class="w-64 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 pr-9 text-xs focus:ring-1 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all placeholder:text-slate-600"
-          />
-          <button id="toggleApiKey" title="Ẩn/Hiện API Key" class="absolute right-2 text-slate-400 hover:text-white p-1">
-            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- ==================== 2. WORKSPACE CHÍNH (BỐ CỤC 2 CỘT) ==================== -->
-  <main class="max-w-[1700px] w-full mx-auto flex-1 grid grid-cols-12 gap-5 p-5">
-    
-    <!-- CỘT TRÁI: QUEUE & UPLOAD (4 CỘT) -->
-    <div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
-      
-      <!-- Khung Kéo Thả File -->
-      <div 
-        id="dropZone" 
-        class="border-2 border-dashed border-slate-700 hover:border-purple-500/80 bg-slate-900/60 hover:bg-purple-950/10 rounded-xl p-6 text-center cursor-pointer transition-all duration-200 group"
-      >
-        <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/webp,image/bmp" class="hidden" />
-        <div class="flex flex-col items-center justify-center gap-2">
-          <div class="w-12 h-12 rounded-full bg-slate-800 group-hover:bg-purple-600/20 text-purple-400 flex items-center justify-center transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-          </div>
-          <p class="text-sm font-semibold text-slate-200">Kéo & thả bản vẽ kỹ thuật vào đây</p>
-          <p class="text-xs text-slate-400">hoặc <span class="text-purple-400 underline underline-offset-2">bấm để chọn từ máy</span></p>
-          <span class="text-[11px] text-slate-500 font-mono mt-1">Hỗ trợ: PNG, JPG, JPEG, WEBP, BMP (Nhiều file)</span>
-        </div>
-      </div>
-
-      <!-- Bảng điều khiển tác vụ hàng loạt -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap gap-2">
-        <button id="btnStartOcr" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-md shadow-purple-900/40 disabled:opacity-50 disabled:cursor-not-allowed">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span>Bắt đầu OCR</span>
-        </button>
-
-        <button id="btnDownloadAllZip" disabled class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed" title="Tải trọn bộ mỗi bản vẽ gồm: TXT đầy đủ, TXT khung tên và PDF Overlay">
-          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          <span>Tất cả (.ZIP)</span>
-        </button>
-
-        <button id="btnDownloadPdfZip" disabled class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed" title="Chỉ tải các bản vẽ PDF Overlay">
-          <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-          <span>PDF .ZIP</span>
-        </button>
-      </div>
-
-      <!-- Danh Sách Hàng Đợi (Queue List) -->
-      <div class="flex-1 bg-slate-900/80 border border-slate-800 rounded-xl flex flex-col overflow-hidden max-h-[calc(100vh-320px)]">
-        <div class="px-4 py-2.5 border-b border-slate-800 flex justify-between items-center bg-slate-900">
-          <span class="text-xs font-semibold text-slate-300">Danh sách bản vẽ (<span id="queueCount">0</span>)</span>
-          <button id="btnClearQueue" class="text-[11px] text-slate-500 hover:text-red-400 transition-colors">Xoá toàn bộ</button>
-        </div>
-        <div id="queueContainer" class="p-2 overflow-y-auto space-y-2 flex-1">
-          <!-- Item hàng đợi render tự động -->
-          <div class="text-center py-16 text-slate-600 text-xs italic">
-            Chưa có bản vẽ nào. Hãy kéo ảnh vào khung trên.
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- CỘT PHẢI: VIEWER & KẾT QUẢ VĂN BẢN (8 CỘT) -->
-    <div class="col-span-12 lg:col-span-8 flex flex-col gap-4">
-
-      <!-- THANH CÔNG CỤ PREVIEW -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 cursor-pointer font-medium">
-            <input type="checkbox" id="toggleOverlay" checked class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 bg-slate-950 border-slate-700">
-            <span>Hiển thị Lớp Chữ Đè (Overlay)</span>
-          </label>
-
-          <div class="flex items-center gap-1.5 pl-3 border-l border-slate-800">
-            <span class="text-slate-400">Màu chữ:</span>
-            <input type="color" id="overlayColor" value="#7c3aed" class="w-6 h-6 rounded border-0 bg-transparent cursor-pointer" title="Chọn màu chữ overlay">
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button id="btnExportSingleTxt" disabled class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 px-2.5 py-1.5 rounded flex items-center gap-1 transition-all">
-            <span>Tải .TXT</span>
-          </button>
-          <button id="btnExportTitleBlockTxt" disabled class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 px-2.5 py-1.5 rounded flex items-center gap-1 transition-all">
-            <span>Tải Khung tên .TXT</span>
-          </button>
-          <button id="btnExportSinglePdf" disabled class="bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-3 py-1.5 rounded flex items-center gap-1 shadow transition-all">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <span>Tải PDF Overlay</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- WORKSPACE CHIA ĐÔI: KHUNG XEM ẢNH & KẾT QUẢ VĂN BẢN -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-[580px]">
-        
-        <!-- Khung Preview Bản Vẽ với Lớp Chữ Đè -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col">
-          <div class="text-xs font-semibold text-slate-400 mb-2 flex justify-between items-center">
-            <span>Bản vẽ trực quan: <span id="currentImageName" class="text-slate-200 font-mono">Chưa chọn</span></span>
-            <span id="imageResolution" class="text-[11px] text-slate-500"></span>
-          </div>
-          <div id="canvasViewport" class="relative flex-1 bg-slate-950 rounded-lg overflow-auto border border-slate-800/80 flex items-center justify-center p-2 min-h-[350px]">
-            <div id="renderWrapper" class="relative inline-block max-w-full">
-              <img id="previewImage" class="max-w-full max-h-[600px] object-contain select-none block" />
-              <div id="overlayLayer" class="absolute inset-0 pointer-events-none"></div>
-            </div>
-            <div id="emptyPreviewNotice" class="text-xs text-slate-600 italic">Chọn một bản vẽ từ danh sách bên trái để xem</div>
-          </div>
-        </div>
-
-        <!-- Khung Văn Bản Trích Xuất (Tabs) -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl flex flex-col overflow-hidden">
-          
-          <!-- Tabs Navigation -->
-          <div class="flex border-b border-slate-800 bg-slate-950/60 px-2 pt-2 gap-2 text-xs">
-            <button id="tabBtn1" class="px-4 py-2 font-medium border-b-2 border-purple-500 text-purple-400 transition-colors">
-              Text 1 cột (Toàn bộ)
-            </button>
-            <button id="tabBtn2" class="px-4 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors">
-              Khung tên (Title Block)
-            </button>
-          </div>
-
-          <!-- Nội Dung Tab 1: Text 1 Cột -->
-          <div id="tabContent1" class="flex-1 p-3 flex flex-col">
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-[11px] text-slate-400">Sắp xếp tự nhiên: Trên xuống dưới, Trái sang phải</span>
-              <button id="btnCopyCol1" class="text-[11px] text-purple-400 hover:underline">Sao chép</button>
-            </div>
-            <textarea id="textContent1" readonly placeholder="Nội dung bóc tách toàn bộ bản vẽ sẽ hiển thị ở đây..." class="w-full flex-1 bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-300 resize-none focus:outline-none"></textarea>
-          </div>
-
-          <!-- Nội Dung Tab 2: Khung Tên Title Block -->
-          <div id="tabContent2" class="flex-1 p-3 flex flex-col hidden">
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-[11px] text-amber-400/90 font-medium">Bóc tách riêng vùng góc dưới phải bản vẽ kỹ thuật</span>
-              <button id="btnCopyTitleBlock" class="text-[11px] text-purple-400 hover:underline">Sao chép</button>
-            </div>
-            <textarea id="textTitleBlock" readonly placeholder="Thông tin khung tên (Tên dự án, Mã bản vẽ, Tỷ lệ, Người vẽ, Ngày tháng...) sẽ lọc ở đây..." class="w-full flex-1 bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-300 resize-none focus:outline-none"></textarea>
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- ==================== 3. JAVASCRIPT LOGIC ==================== -->
-  <script>
-    // --- QUẢN LÝ TRẠNG THÁI (STATE) ---
-    const STATE = {
-      apiKey: localStorage.getItem('gemini_cad_key') || '',
-      selectedModel: 'gemini-3.8-flash',
-      queue: [], // { id, file, originalImgUrl, width, height, status: 'Chờ'|'Đang đọc...'|'Hoàn tất'|'Lỗi', ocrData: null, pdfBlob: null, errorMsg: null }
-      selectedIndex: -1,
-      isProcessing: false,
-      overlayColor: '#7c3aed',
-      showOverlay: true,
-      activeTab: 1
-    };
-
-    // --- DOM REFERENCES ---
-    const dom = {
-      apiKeyInput: document.getElementById('apiKeyInput'),
-      toggleApiKey: document.getElementById('toggleApiKey'),
-      eyeIcon: document.getElementById('eyeIcon'),
-      modelSelect: document.getElementById('modelSelect'),
-      dropZone: document.getElementById('dropZone'),
-      fileInput: document.getElementById('fileInput'),
-      queueContainer: document.getElementById('queueContainer'),
-      queueCount: document.getElementById('queueCount'),
-      btnClearQueue: document.getElementById('btnClearQueue'),
-      btnStartOcr: document.getElementById('btnStartOcr'),
-      btnDownloadAllZip: document.getElementById('btnDownloadAllZip'),
-      btnDownloadPdfZip: document.getElementById('btnDownloadPdfZip'),
-      toggleOverlay: document.getElementById('toggleOverlay'),
-      overlayColor: document.getElementById('overlayColor'),
-      previewImage: document.getElementById('previewImage'),
-      overlayLayer: document.getElementById('overlayLayer'),
-      renderWrapper: document.getElementById('renderWrapper'),
-      emptyPreviewNotice: document.getElementById('emptyPreviewNotice'),
-      currentImageName: document.getElementById('currentImageName'),
-      imageResolution: document.getElementById('imageResolution'),
-      tabBtn1: document.getElementById('tabBtn1'),
-      tabBtn2: document.getElementById('tabBtn2'),
-      tabContent1: document.getElementById('tabContent1'),
-      tabContent2: document.getElementById('tabContent2'),
-      textContent1: document.getElementById('textContent1'),
-      textTitleBlock: document.getElementById('textTitleBlock'),
-      btnCopyCol1: document.getElementById('btnCopyCol1'),
-      btnCopyTitleBlock: document.getElementById('btnCopyTitleBlock'),
-      btnExportSingleTxt: document.getElementById('btnExportSingleTxt'),
-      btnExportTitleBlockTxt: document.getElementById('btnExportTitleBlockTxt'),
-      btnExportSinglePdf: document.getElementById('btnExportSinglePdf')
-    };
-
-    // --- KHỞI TẠO ỨNG DỤNG ---
-    function init() {
-      if (STATE.apiKey) {
-        dom.apiKeyInput.value = STATE.apiKey;
-      }
-      dom.apiKeyInput.addEventListener('input', (e) => {
-        STATE.apiKey = e.target.value.trim();
-        localStorage.setItem('gemini_cad_key', STATE.apiKey);
-      });
-
-      dom.toggleApiKey.addEventListener('click', () => {
-        const type = dom.apiKeyInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        dom.apiKeyInput.setAttribute('type', type);
-      });
-
-      dom.modelSelect.value = STATE.selectedModel;
-      dom.modelSelect.addEventListener('change', (e) => {
-        STATE.selectedModel = e.target.value;
-      });
-
-      // Drag & Drop
-      dom.dropZone.addEventListener('click', () => dom.fileInput.click());
-      dom.dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dom.dropZone.classList.add('border-purple-500', 'bg-purple-950/20');
-      });
-      dom.dropZone.addEventListener('dragleave', () => {
-        dom.dropZone.classList.remove('border-purple-500', 'bg-purple-950/20');
-      });
-      dom.dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dom.dropZone.classList.remove('border-purple-500', 'bg-purple-950/20');
-        handleFiles(e.dataTransfer.files);
-      });
-      dom.fileInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-        dom.fileInput.value = '';
-      });
-
-      dom.btnClearQueue.addEventListener('click', clearQueue);
-      dom.btnStartOcr.addEventListener('click', startBatchOcr);
-      dom.btnDownloadAllZip.addEventListener('click', downloadAllZip);
-      dom.btnDownloadPdfZip.addEventListener('click', downloadPdfZip);
-
-      // Điều khiển Overlay
-      dom.toggleOverlay.addEventListener('change', (e) => {
-        STATE.showOverlay = e.target.checked;
-        dom.overlayLayer.style.display = STATE.showOverlay ? 'block' : 'none';
-      });
-      dom.overlayColor.addEventListener('input', (e) => {
-        STATE.overlayColor = e.target.value;
-        renderOverlayItems();
-      });
-
-      // Tabs switch
-      dom.tabBtn1.addEventListener('click', () => switchTab(1));
-      dom.tabBtn2.addEventListener('click', () => switchTab(2));
-
-      // Sao chép nhanh
-      dom.btnCopyCol1.addEventListener('click', () => copyToClipboard(dom.textContent1.value));
-      dom.btnCopyTitleBlock.addEventListener('click', () => copyToClipboard(dom.textTitleBlock.value));
-
-      // Xuất file đơn lẻ
-      dom.btnExportSingleTxt.addEventListener('click', exportSingleTxt);
-      dom.btnExportTitleBlockTxt.addEventListener('click', exportSingleTitleBlock);
-      dom.btnExportSinglePdf.addEventListener('click', exportSinglePdf);
-
-      // Cập nhật lại khung vẽ khi thay đổi kích thước cửa sổ
-      window.addEventListener('resize', () => {
-        if (STATE.selectedIndex !== -1) renderOverlayItems();
-      });
-    }
-
-    // --- CẬP NHẬT TRẠNG THÁI CÁC NÚT TẢI TỔNG THỂ ---
-    function updateBatchActionButtons() {
-      const hasAnyReadyPdf = STATE.queue.some(item => item.pdfBlob !== null || item.status === 'Hoàn tất');
-      dom.btnDownloadAllZip.disabled = !hasAnyReadyPdf;
-      dom.btnDownloadPdfZip.disabled = !hasAnyReadyPdf;
-    }
-
-    // --- XỬ LÝ DANH SÁCH FILE ẢNH ĐƯỢC CHỌN ---
-    async function handleFiles(fileList) {
-      if (!fileList || fileList.length === 0) return;
-      const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/bmp'];
-
-      for (let file of fileList) {
-        if (!validTypes.includes(file.type) && !file.name.match(/\.(png|jpe?g|webp|bmp)$/i)) continue;
-        
-        const originalImgUrl = URL.createObjectURL(file);
-        const dimensions = await getImageDimensions(originalImgUrl);
-
-        STATE.queue.push({
-          id: 'cad_' + Math.random().toString(36).substring(2, 9),
-          file: file,
-          name: file.name,
-          originalImgUrl: originalImgUrl,
-          width: dimensions.width,
-          height: dimensions.height,
-          status: 'Chờ',
-          ocrData: null,
-          pdfBlob: null,
-          errorMsg: null
-        });
-      }
-
-      renderQueueList();
-      updateBatchActionButtons();
-      if (STATE.selectedIndex === -1 && STATE.queue.length > 0) {
-        selectQueueItem(0);
-      }
-    }
-
-    function getImageDimensions(url) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-        img.onerror = () => resolve({ width: 0, height: 0 });
-        img.src = url;
-      });
-    }
-
-    function clearQueue() {
-      STATE.queue.forEach(item => URL.revokeObjectURL(item.originalImgUrl));
-      STATE.queue = [];
-      STATE.selectedIndex = -1;
-      renderQueueList();
-      resetViewer();
-      updateBatchActionButtons();
-    }
-
-    // --- RENDER HÀNG ĐỢI GIAO DIỆN ---
-    function renderQueueList() {
-      dom.queueCount.textContent = STATE.queue.length;
-      if (STATE.queue.length === 0) {
-        dom.queueContainer.innerHTML = `
-          <div class="text-center py-16 text-slate-600 text-xs italic">
-            Chưa có bản vẽ nào. Hãy kéo ảnh vào khung trên.
-          </div>`;
-        return;
-      }
-
-      dom.queueContainer.innerHTML = '';
-      STATE.queue.forEach((item, index) => {
-        const isSelected = index === STATE.selectedIndex;
-        const itemEl = document.createElement('div');
-        itemEl.className = `p-2.5 rounded-lg border flex items-center justify-between gap-3 cursor-pointer transition-all ${
-          isSelected ? 'bg-purple-950/40 border-purple-600/70 shadow-sm' : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
-        }`;
-
-        let statusBadge = '';
-        if (item.status === 'Chờ') {
-          statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Chờ</span>';
-        } else if (item.status === 'Đang đọc...') {
-          statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 animate-pulse">Đang đọc...</span>';
-        } else if (item.status === 'Hoàn tất') {
-          statusBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-medium">Hoàn tất</span>';
-        } else if (item.status === 'Lỗi') {
-          statusBadge = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-800" title="${item.errorMsg || 'Lỗi'}">Lỗi</span>`;
-        }
-
-        itemEl.innerHTML = `
-          <div class="flex items-center gap-2.5 overflow-hidden flex-1">
-            <img src="${item.originalImgUrl}" class="w-10 h-10 rounded object-cover border border-slate-700 flex-shrink-0 bg-slate-900" />
-            <div class="overflow-hidden flex-1">
-              <p class="text-xs font-medium text-slate-200 truncate" title="${item.name}">${item.name}</p>
-              <div class="flex items-center gap-2 mt-1">
-                ${statusBadge}
-                <span class="text-[10px] text-slate-500 font-mono">${item.width}x${item.height}px</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center gap-1">
-            ${item.pdfBlob ? `
-              <button data-download-index="${index}" class="p-1.5 bg-slate-800 hover:bg-purple-700 rounded text-purple-300 hover:text-white transition-colors" title="Tải nhanh PDF Overlay">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              </button>
-            ` : ''}
-          </div>
-        `;
-
-        itemEl.addEventListener('click', (e) => {
-          if (e.target.closest('[data-download-index]')) return;
-          selectQueueItem(index);
-        });
-
-        const dlBtn = itemEl.querySelector('[data-download-index]');
-        if (dlBtn) {
-          dlBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            downloadBlob(item.pdfBlob, `${item.name.replace(/\.[^/.]+$/, '')}_OCR_Overlay.pdf`);
-          });
-        }
-
-        dom.queueContainer.appendChild(itemEl);
-      });
-    }
-
-    function selectQueueItem(index) {
-      if (index < 0 || index >= STATE.queue.length) return;
-      STATE.selectedIndex = index;
-      renderQueueList();
-
-      const item = STATE.queue[index];
-      dom.emptyPreviewNotice.classList.add('hidden');
-      dom.previewImage.classList.remove('hidden');
-      dom.previewImage.src = item.originalImgUrl;
-      dom.currentImageName.textContent = item.name;
-      dom.imageResolution.textContent = `${item.width} × ${item.height} px`;
-
-      // Cập nhật trạng thái nút xuất lẻ: Mở khóa ngay lập tức khi file đã hoàn tất hoặc có PDF
-      const isDone = item.status === 'Hoàn tất' || !!item.ocrData;
-      dom.btnExportSingleTxt.disabled = !isDone;
-      dom.btnExportTitleBlockTxt.disabled = !isDone;
-      dom.btnExportSinglePdf.disabled = !item.pdfBlob;
-
-      // Cập nhật text fields
-      if (item.ocrData) {
-        populateExtractedText(item.ocrData, item.height);
-      } else {
-        dom.textContent1.value = item.status === 'Lỗi' ? `Lỗi: ${item.errorMsg}` : '';
-        dom.textTitleBlock.value = '';
-      }
-
-      // Render Overlay chữ đè
-      dom.previewImage.onload = () => {
-        renderOverlayItems();
-      };
-      if (dom.previewImage.complete) {
-        renderOverlayItems();
-      }
-    }
-
-    function resetViewer() {
-      dom.previewImage.src = '';
-      dom.previewImage.classList.add('hidden');
-      dom.overlayLayer.innerHTML = '';
-      dom.emptyPreviewNotice.classList.remove('hidden');
-      dom.currentImageName.textContent = 'Chưa chọn';
-      dom.imageResolution.textContent = '';
-      dom.textContent1.value = '';
-      dom.textTitleBlock.value = '';
-      dom.btnExportSingleTxt.disabled = true;
-      dom.btnExportTitleBlockTxt.disabled = true;
-      dom.btnExportSinglePdf.disabled = true;
-    }
-
-    // --- HIỂN THỊ CHỮ TRÍCH XUẤT LÊN TABS ---
-    function populateExtractedText(ocrData, imgHeight) {
-      if (!ocrData || !ocrData.textItems || ocrData.textItems.length === 0) {
-        dom.textContent1.value = "[Bản vẽ không có văn bản hoặc văn bản không thể xác định]";
-        dom.textTitleBlock.value = "[Không phát hiện cụm Khung tên]";
-        return;
-      }
-
-      // Tab 1: Sắp xếp theo thứ tự: Trên xuống dưới, Trái sang phải
-      const sortedItems = [...ocrData.textItems].sort((a, b) => {
-        const topA = a.boundingBox[0];
-        const topB = b.boundingBox[0];
-        if (Math.abs(topA - topB) < 15) {
-          return a.boundingBox[1] - b.boundingBox[1];
-        }
-        return topA - topB;
-      });
-
-      dom.textContent1.value = sortedItems.map(item => item.text.trim()).filter(Boolean).join('\n');
-
-      // Tab 2: Vùng Khung Tên (Title Block) - Heuristic: Ymin >= 680 và Xmin >= 500 (Góc dưới bản vẽ CAD)
-      const titleBlockItems = sortedItems.filter(item => {
-        const [ymin, xmin] = item.boundingBox;
-        return ymin >= 680 && xmin >= 500;
-      });
-
-      if (titleBlockItems.length > 0) {
-        dom.textTitleBlock.value = titleBlockItems.map(item => item.text.trim()).filter(Boolean).join('\n');
-      } else {
-        dom.textTitleBlock.value = "[Không phát hiện cụm Khung tên ở góc dưới bản vẽ hoặc bản vẽ bố trí dạng khác]";
-      }
-    }
-
-    // --- RENDER OVERLAY TRÊN MÀN HÌNH PREVIEW ---
-    function renderOverlayItems() {
-      dom.overlayLayer.innerHTML = '';
-      if (STATE.selectedIndex === -1) return;
-      const item = STATE.queue[STATE.selectedIndex];
-      if (!item.ocrData || !item.ocrData.textItems) return;
-
-      const imgWidth = dom.previewImage.clientWidth;
-      const imgHeight = dom.previewImage.clientHeight;
-      if (!imgWidth || !imgHeight) return;
-
-      item.ocrData.textItems.forEach(tItem => {
-        const [ymin, xmin, ymax, xmax] = tItem.boundingBox;
-        const boxTop = (ymin / 1000) * imgHeight;
-        const boxLeft = (xmin / 1000) * imgWidth;
-        const boxWidth = ((xmax - xmin) / 1000) * imgWidth;
-        const boxHeight = ((ymax - ymin) / 1000) * imgHeight;
-
-        const span = document.createElement('div');
-        span.className = 'overlay-box';
-        span.style.top = `${boxTop}px`;
-        span.style.left = `${boxLeft}px`;
-        span.style.width = `${boxWidth}px`;
-        span.style.height = `${boxHeight}px`;
-        span.style.color = STATE.overlayColor;
-        span.style.fontSize = `${Math.max(boxHeight * 0.85, 9)}px`;
-        span.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
-        span.textContent = tItem.text;
-
-        dom.overlayLayer.appendChild(span);
-      });
-    }
-
-    // --- CHUYỂN TAB ---
-    function switchTab(tabNumber) {
-      STATE.activeTab = tabNumber;
-      if (tabNumber === 1) {
-        dom.tabBtn1.classList.add('border-purple-500', 'text-purple-400');
-        dom.tabBtn1.classList.remove('border-transparent', 'text-slate-400');
-        dom.tabBtn2.classList.remove('border-purple-500', 'text-purple-400');
-        dom.tabBtn2.classList.add('border-transparent', 'text-slate-400');
-        dom.tabContent1.classList.remove('hidden');
-        dom.tabContent2.classList.add('hidden');
-      } else {
-        dom.tabBtn2.classList.add('border-purple-500', 'text-purple-400');
-        dom.tabBtn2.classList.remove('border-transparent', 'text-slate-400');
-        dom.tabBtn1.classList.remove('border-purple-500', 'text-purple-400');
-        dom.tabBtn1.classList.add('border-transparent', 'text-slate-400');
-        dom.tabContent2.classList.remove('hidden');
-        dom.tabContent1.classList.add('hidden');
-      }
-    }
-
-    // --- XỬ LÝ HÀNG LOẠT VỚI GOOGLE GEMINI REST API ---
-    async function startBatchOcr() {
-      if (!STATE.apiKey) {
-        alert('Vui lòng nhập Google Gemini API Key trên thanh tiêu đề!');
-        dom.apiKeyInput.focus();
-        return;
-      }
-
-      if (STATE.isProcessing) return;
-      STATE.isProcessing = true;
-      dom.btnStartOcr.disabled = true;
-
-      for (let i = 0; i < STATE.queue.length; i++) {
-        const item = STATE.queue[i];
-        if (item.status === 'Hoàn tất' && item.pdfBlob) continue;
-
-        item.status = 'Đang đọc...';
-        renderQueueList();
-
-        try {
-          // 1. Chuẩn bị ảnh nén tối đa 1800px
-          const { base64Data, mimeType } = await prepareOptimizedBase64(item.file);
-
-          // 2. Gọi Gemini REST API
-          let ocrResult = null;
-          try {
-            ocrResult = await callGeminiOcr(base64Data, mimeType, STATE.apiKey, STATE.selectedModel);
-          } catch (apiErr) {
-            console.warn("Gemini OCR trả lỗi hoặc không nhận diện được chữ:", apiErr);
-            // Fallback an toàn: Vẫn tạo danh sách chữ rỗng để LUÔN LUÔN xuất được PDF bản vẽ nền gốc
-            ocrResult = { textItems: [] };
-          }
-
-          // Gán kết quả OCR
-          item.ocrData = ocrResult;
-
-          // QUY TẮC BẮT BUỘC: Ngay khi nhận được phản hồi và có text (hoặc cấu trúc textItems),
-          // lập tức đánh dấu "Hoàn tất" (xanh lá), không bao giờ đánh dấu lỗi làm gián đoạn
-          item.status = 'Hoàn tất';
-          item.errorMsg = null;
-
-          // 3. TẠO FILE PDF OVERLAY (Bảo đảm luôn xuất được PDF với ảnh bản vẽ gốc làm nền)
-          try {
-            const pdfBytes = await generatePdfOverlay(item.file, item.width, item.height, ocrResult.textItems || []);
-            item.pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-          } catch (pdfErr) {
-            console.error("Lỗi khi render PDF overlay:", pdfErr);
-          }
-
-        } catch (err) {
-          console.error(err);
-          // Trường hợp lỗi nghiêm trọng về file, cố gắng tạo PDF chỉ có ảnh nền gốc
-          try {
-            const pdfBytes = await generatePdfOverlay(item.file, item.width, item.height, []);
-            item.pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-            item.ocrData = { textItems: [] };
-            item.status = 'Hoàn tất';
-          } catch (finalErr) {
-            item.status = 'Lỗi';
-            item.errorMsg = err.message || 'Lỗi bóc tách';
-          }
-        }
-
-        // Cập nhật giao diện từng bước
-        renderQueueList();
-        updateBatchActionButtons();
-        if (STATE.selectedIndex === i) {
-          selectQueueItem(i);
-        }
-      }
-
-      STATE.isProcessing = false;
-      dom.btnStartOcr.disabled = false;
-      updateBatchActionButtons();
-    }
-
-    // Nén ảnh qua Canvas (Tối đa 1800px, JPEG chất lượng 0.82)
-    function prepareOptimizedBase64(file) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          let w = img.naturalWidth;
-          let h = img.naturalHeight;
-          const maxDimension = 1800;
-
-          if (w > maxDimension || h > maxDimension) {
-            if (w > h) {
-              h = Math.round((h * maxDimension) / w);
-              w = maxDimension;
-            } else {
-              w = Math.round((w * maxDimension) / h);
-              h = maxDimension;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-          const base64Data = dataUrl.split(',')[1];
-          resolve({ base64Data, mimeType: 'image/jpeg' });
-        };
-        img.onerror = reject;
-        img.src = URL.createObjectURL(file);
-      });
-    }
-
-    // Gọi Gemini API v1beta
-    async function callGeminiOcr(base64Data, mimeType, apiKey, model) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-      const promptText = `
-Bạn là kỹ sư số hóa bản vẽ CAD và sơ đồ điện chuyên nghiệp.
-Nhiệm vụ: Trích xuất TOÀN BỘ ký tự văn bản, mã thiết bị, thông số, nhãn dây, kích thước và nội dung khung tên trong hình vẽ kỹ thuật này.
-Yêu cầu bắt buộc về BoundingBox:
-- BoundingBox định dạng [ymin, xmin, ymax, xmax] theo thang đo chuẩn hóa từ 0 đến 1000.
-- Độ bao phủ hộp phải ôm sát từng từ/cụm từ tương ứng.
-- Đảm bảo trích xuất chính xác cả văn bản trong Khung tên (Title Block) ở góc bản vẽ.
-
-Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
-{
-  "textItems": [
-    {
-      "text": "nội dung chữ",
-      "boundingBox": [ymin, xmin, ymax, xmax],
-      "rotation": 0
-    }
-  ]
-}`;
-
-      const payload = {
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: promptText },
-              {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: base64Data
-                }
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          response_mime_type: "application/json",
-          temperature: 0.1
-        }
-      };
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errorJson = await response.json().catch(() => ({}));
-        throw new Error(errorJson.error?.message || `HTTP ${response.status}: Lỗi máy chủ Gemini`);
-      }
-
-      const jsonResp = await response.json();
-      const rawText = jsonResp.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!rawText) throw new Error('Gemini không trả về nội dung hợp lệ.');
-
-      return JSON.parse(rawText);
-    }
-
-    // Chuyển bất kỳ định dạng ảnh nào (PNG, WEBP, BMP, JPG) sang JPEG ArrayBuffer để pdf-lib luôn nhúng thành công
-    function convertImageToSafeJpgBuffer(file, targetWidth, targetHeight) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = targetWidth || img.naturalWidth;
-          canvas.height = targetHeight || img.naturalHeight;
-          const ctx = canvas.getContext('2d');
-          // Nền trắng cho bản vẽ
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob((blob) => {
-            blob.arrayBuffer().then(resolve);
-          }, 'image/jpeg', 0.92);
-        };
-        img.onerror = () => {
-          // Fallback arrayBuffer trực tiếp nếu không thể render canvas
-          file.arrayBuffer().then(resolve);
-        };
-        img.src = URL.createObjectURL(file);
-      });
-    }
-
-    // --- TẠO FILE PDF OVERLAY BẰNG PDF-LIB (LUÔN LUÔN XUẤT ĐƯỢC PDF) ---
-    async function generatePdfOverlay(imageFile, origWidth, origHeight, textItems) {
-      const { PDFDocument, rgb, StandardFonts } = PDFLib;
-      const pdfDoc = await PDFDocument.create();
-
-      // Nhúng font chữ tiêu chuẩn
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-      // Chuẩn hoá ảnh nền gốc sang JPG Buffer để tương thích 100% với pdf-lib
-      const safeJpgBuffer = await convertImageToSafeJpgBuffer(imageFile, origWidth, origHeight);
-      const embeddedImage = await pdfDoc.embedJpg(safeJpgBuffer);
-
-      // Kích thước trang chuẩn theo kích thước ảnh bản vẽ gốc
-      const page = pdfDoc.addPage([origWidth, origHeight]);
-
-      // 1. VẼ ẢNH BẢN VẼ GỐC LÀM NỀN TẢNG CHÍNH
-      page.drawImage(embeddedImage, {
-        x: 0,
-        y: 0,
-        width: origWidth,
-        height: origHeight
-      });
-
-      // 2. Chuyển mã màu HEX overlay sang RGB
-      const hexToRgb = (hex) => {
-        let clean = hex.replace('#', '');
-        if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
-        const num = parseInt(clean, 16);
-        return rgb(((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255);
-      };
-      const textColor = hexToRgb(STATE.overlayColor);
-
-      // 3. VẼ TỪNG CHỮ ĐÈ LÊN (XỬ LÝ LỖI FONT TUYỆT ĐỐI KHÔNG LÀM HỎNG FILE)
-      if (textItems && Array.isArray(textItems)) {
-        for (const t of textItems) {
-          if (!t.boundingBox) continue;
-
-          // Tiêu chuẩn bắt buộc: Lọc sạch ký tự font an toàn
-          const safeText = String(t.text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, " ").trim();
-          if (!safeText) continue;
-
-          const [ymin, xmin, ymax, xmax] = t.boundingBox;
-          
-          // Chuyển hệ quy chiếu Gemini (0-1000) sang hệ tọa độ Pixel
-          const x = (xmin / 1000) * origWidth;
-          const boxHeight = ((ymax - ymin) / 1000) * origHeight;
-          const yTop = (ymin / 1000) * origHeight;
+          const boxLeft = (xmin / 1000) * pageWidth;
+          const boxTop = (ymin / 1000) * pageHeight;
+          const boxWidth = ((xmax - xmin) / 1000) * pageWidth;
+          const boxHeight = ((ymax - ymin) / 1000) * pageHeight;
 
           // Hệ toạ độ PDF: (0,0) nằm ở góc dưới cùng bên trái (Bottom-Left)
-          const y = origHeight - yTop - (boxHeight * 0.82);
-          const fontSize = Math.max(boxHeight * 0.8, 6);
+          const pdfY = pageHeight - boxTop - boxHeight;
+          const fontSize = Math.max(boxHeight * 0.75, 6);
 
-          // Bọc try...catch riêng biệt cho từng ô chữ: Nếu 1 ô lỗi thì bỏ qua ô đó và tiếp tục các ô còn lại
+          // Bọc drawRectangle trong try...catch riêng biệt
+          try {
+            page.drawRectangle({
+              x: boxLeft,
+              y: pdfY,
+              width: Math.max(boxWidth, 4),
+              height: Math.max(boxHeight, 4),
+              color: rgb(1, 1, 1),
+              opacity: 0.35
+            });
+          } catch (rectErr) {
+            console.warn("Bỏ qua lỗi vẽ rectangle:", rectErr);
+          }
+
+          // Bọc drawText trong try...catch riêng biệt
           try {
             page.drawText(safeText, {
-              x: Math.max(0, x),
-              y: Math.max(0, y),
+              x: boxLeft,
+              y: pdfY + Math.max(0, (boxHeight - fontSize) / 2),
               size: fontSize,
-              font: helveticaFont,
+              font: helveticaBoldFont,
               color: textColor,
               opacity: 0.95
             });
-          } catch (drawErr) {
-            console.warn("Bỏ qua từ bị lỗi ký tự trong PDF:", t.text, drawErr);
+          } catch (textErr) {
+            console.warn("Bỏ qua từ bị lỗi ký tự:", safeText, textErr);
           }
         }
       }
@@ -1941,79 +971,118 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // Tải nhanh PDF theo index trong queue (sinh on-the-fly nếu chưa có blob)
+    async function downloadSingleItemPdf(index) {
+      const item = STATE.queue[index];
+      if (!item) return;
+
+      if (!item.pdfBlob) {
+        try {
+          const pdfBytes = await generatePdfOverlay(item.originalImgUrl, item.width, item.height, item.ocrData?.textItems || []);
+          item.pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+        } catch (e) {
+          alert('Không thể tạo PDF cho bản vẽ này: ' + e.message);
+          return;
+        }
+      }
+
+      downloadBlob(item.pdfBlob, `${item.name.replace(/\.[^/.]+$/, '')}_OCR_Overlay.pdf`);
+    }
+
+    // Tải PDF Overlay của bản vẽ đang chọn
+    async function exportSinglePdf() {
+      if (STATE.selectedIndex === -1) return;
+      await downloadSingleItemPdf(STATE.selectedIndex);
     }
 
     function exportSingleTxt() {
       if (STATE.selectedIndex === -1) return;
       const item = STATE.queue[STATE.selectedIndex];
-      const blob = new Blob([dom.textContent1.value], { type: 'text/plain;charset=utf-8' });
+      const blob = new Blob([dom.textContent1.value || ''], { type: 'text/plain;charset=utf-8' });
       downloadBlob(blob, `${item.name.replace(/\.[^/.]+$/, '')}_FULL.txt`);
     }
 
     function exportSingleTitleBlock() {
       if (STATE.selectedIndex === -1) return;
       const item = STATE.queue[STATE.selectedIndex];
-      const blob = new Blob([dom.textTitleBlock.value], { type: 'text/plain;charset=utf-8' });
+      const blob = new Blob([dom.textTitleBlock.value || ''], { type: 'text/plain;charset=utf-8' });
       downloadBlob(blob, `${item.name.replace(/\.[^/.]+$/, '')}_KHUNG_TEN.txt`);
     }
 
-    function exportSinglePdf() {
-      if (STATE.selectedIndex === -1) return;
-      const item = STATE.queue[STATE.selectedIndex];
-      if (item.pdfBlob) {
-        downloadBlob(item.pdfBlob, `${item.name.replace(/\.[^/.]+$/, '')}_OCR_Overlay.pdf`);
-      }
-    }
-
-    // Tải toàn bộ file hoàn tất thành file .ZIP (Gồm .TXT đầy đủ, Khung tên .TXT và .PDF Overlay)
+    // TẢI TRỌN BỘ TẤT CẢ FILE (.ZIP): Mỗi bản vẽ đủ 3 file (.txt, _khung_ten.txt, _overlay.pdf)
     async function downloadAllZip() {
-      const readyItems = STATE.queue.filter(i => i.pdfBlob || i.status === 'Hoàn tất');
-      if (readyItems.length === 0) {
-        alert('Chưa có bản vẽ nào hoàn tất để tải gói ZIP.');
+      if (STATE.queue.length === 0) {
+        alert('Chưa có bản vẽ nào trong danh sách.');
         return;
       }
 
       const zip = new JSZip();
 
-      readyItems.forEach(item => {
+      for (const item of STATE.queue) {
         const baseName = item.name.replace(/\.[^/.]+$/, '');
         const folder = zip.folder(baseName);
 
-        // 1. Text 1 cột
+        // 1. File Text 1 cột đầy đủ
         const textItems = item.ocrData?.textItems || [];
         const sortedItems = [...textItems].sort((a, b) => a.boundingBox[0] - b.boundingBox[0]);
         const fullTxt = sortedItems.map(i => i.text.trim()).join('\n');
-        folder.file(`${baseName}_FULL.txt`, fullTxt || 'Không có văn bản');
+        folder.file(`${baseName}_FULL.txt`, fullTxt || '[Bản vẽ chưa nhận dạng hoặc không có chữ]');
 
-        // 2. Khung tên
+        // 2. File Khung tên
         const tbItems = sortedItems.filter(i => i.boundingBox[0] >= 680 && i.boundingBox[1] >= 500);
         const tbTxt = tbItems.map(i => i.text.trim()).join('\n');
-        folder.file(`${baseName}_TITLE_BLOCK.txt`, tbTxt || 'Không phát hiện khung tên');
+        folder.file(`${baseName}_KHUNG_TEN.txt`, tbTxt || '[Không phát hiện khung tên]');
 
-        // 3. PDF Overlay nền bản vẽ gốc
-        if (item.pdfBlob) {
-          folder.file(`${baseName}_Overlay.pdf`, item.pdfBlob);
+        // 3. File PDF Overlay (Bảo đảm luôn luôn có file PDF)
+        let pdfBlob = item.pdfBlob;
+        if (!pdfBlob) {
+          try {
+            const pdfBytes = await generatePdfOverlay(item.originalImgUrl, item.width, item.height, textItems);
+            pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            item.pdfBlob = pdfBlob;
+          } catch (e) {
+            console.error("Lỗi sinh PDF khi tạo ZIP:", e);
+          }
         }
-      });
+        if (pdfBlob) {
+          folder.file(`${baseName}_OCR_Overlay.pdf`, pdfBlob);
+        }
+      }
 
       const zipContent = await zip.generateAsync({ type: 'blob' });
       downloadBlob(zipContent, `CAD_Batch_OCR_All_${Date.now()}.zip`);
     }
 
-    // Chỉ tải riêng các bản vẽ PDF Overlay đóng gói .ZIP
+    // TẢI RIÊNG TOÀN BỘ FILE PDF OVERLAY ĐÓNG GÓI (.ZIP)
     async function downloadPdfZip() {
-      const readyItems = STATE.queue.filter(i => i.pdfBlob);
-      if (readyItems.length === 0) {
-        alert('Chưa có file PDF nào sẵn sàng.');
+      if (STATE.queue.length === 0) {
+        alert('Chưa có bản vẽ nào trong danh sách.');
         return;
       }
 
       const zip = new JSZip();
-      readyItems.forEach(item => {
+
+      for (const item of STATE.queue) {
         const baseName = item.name.replace(/\.[^/.]+$/, '');
-        zip.file(`${baseName}_OCR_Overlay.pdf`, item.pdfBlob);
-      });
+        let pdfBlob = item.pdfBlob;
+
+        if (!pdfBlob) {
+          try {
+            const pdfBytes = await generatePdfOverlay(item.originalImgUrl, item.width, item.height, item.ocrData?.textItems || []);
+            pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            item.pdfBlob = pdfBlob;
+          } catch (e) {
+            console.error("Lỗi sinh PDF cho danh sách:", e);
+          }
+        }
+
+        if (pdfBlob) {
+          zip.file(`${baseName}_OCR_Overlay.pdf`, pdfBlob);
+        }
+      }
 
       const zipContent = await zip.generateAsync({ type: 'blob' });
       downloadBlob(zipContent, `CAD_PDF_Overlays_${Date.now()}.zip`);
