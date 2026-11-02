@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CAD Batch OCR & PDF Overlay - v18.0</title>
+  <title>CAD Batch OCR & PDF Overlay - v19.0</title>
 
-  <!-- ==================== 1. NẠP CDN CHÍNH THỨC, ỔN ĐỊNH ==================== -->
-  <!-- Nạp pdf-lib từ jsDelivr chính thức -->
-  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.9/dist/pdf-lib.min.js"></script>
-  <!-- Nạp JSZip từ CDNJS -->
+  <!-- ==================== 1. CDN NẠP PDF-LIB AN TOÀN 3 TẦNG ==================== -->
+  <!-- Tầng 1: Cloudflare CDNJS (máy chủ CDN đặt tại VN, phản hồi cực nhanh, không chặn) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.9/pdf-lib.min.js"></script>
+  <script>
+    // Tầng 2 & 3: Tự động chuyển nguồn sang jsDelivr nếu CDNJS bị nghẽn
+    if (typeof PDFLib === 'undefined' && typeof window.PDFLib === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.9/dist/pdf-lib.min.js"><\/script>');
+    }
+  </script>
+  <!-- Nạp JSZip từ Cloudflare CDNJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <!-- Tailwind CSS CDN -->
@@ -55,7 +61,7 @@
   <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-6 py-3">
     <div class="max-w-[1700px] mx-auto flex flex-wrap items-center justify-between gap-4">
       
-      <!-- Logo, Tên công cụ & Badge Version -->
+      <!-- Logo, Tên công cụ & Badge Version v19.0 -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-600 to-amber-500 flex items-center justify-center shadow-lg shadow-purple-950/40">
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +71,7 @@
         <div>
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
             CAD Batch OCR & PDF Overlay
-            <span class="px-2 py-0.5 rounded bg-emerald-400 text-slate-950 font-mono font-bold text-[10px]">v18.0</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-400 text-slate-950 font-mono font-bold text-[10px]">v19.0</span>
             <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60 font-mono">Gemini 3.8 Flash</span>
           </h1>
           <p class="text-xs text-slate-400">Nền ảnh bản vẽ gốc CAD & Bọc lớp chữ đè kiểm tra đối soát trực tiếp</p>
@@ -299,21 +305,13 @@
       btnExportSinglePdfText: document.getElementById('btnExportSinglePdfText')
     };
 
-    // --- 2. HÀM LẤY ĐỐI TƯỢNG THƯ VIỆN ĐỒNG BỘ, KHÔNG TIMEOUT ---
-    function getPdfLib() {
-      const lib = window.PDFLib || (typeof PDFLib !== 'undefined' ? PDFLib : null);
-      if (!lib) {
-        throw new Error("Thư viện pdf-lib chưa sẵn sàng. Vui lòng kiểm tra mạng và tải lại trang!");
-      }
-      return lib;
+    // --- 2. HÀM LẤY PDF-LIB & JSZIP TRỰC TIẾP KHÔNG GÂY LỖI CHẶN TIẾN TRÌNH ---
+    function getPdfEngine() {
+      return window.PDFLib || (typeof PDFLib !== 'undefined' ? PDFLib : null);
     }
 
-    function getJSZip() {
-      const zip = window.JSZip || (typeof JSZip !== 'undefined' ? JSZip : null);
-      if (!zip) {
-        throw new Error("Thư viện JSZip chưa sẵn sàng. Vui lòng kiểm tra mạng và tải lại trang!");
-      }
-      return zip;
+    function getZipEngine() {
+      return window.JSZip || (typeof JSZip !== 'undefined' ? JSZip : null);
     }
 
     // --- KHỞI TẠO ỨNG DỤNG ---
@@ -563,7 +561,7 @@
       dom.currentImageName.textContent = item.name;
       dom.imageResolution.textContent = `${item.width} × ${item.height} px`;
 
-      // NÚT TẢI PDF OVERLAY LUÔN ĐƯỢC ENABLE KHI ĐÃ CHỌN BẢN VẼ
+      // Nút Tải PDF Overlay luôn khả dụng khi bản vẽ được chọn
       dom.btnExportSinglePdf.disabled = false;
 
       const hasOcr = !!item.ocrData;
@@ -716,7 +714,7 @@
           }
 
           item.ocrData = ocrResult;
-          // QUY CHUẨN BẮT BUỘC: Đã có kết quả phản hồi thì chuyển ngay trạng thái Hoàn tất
+          // QUY CHUẨN BẮT BUỘC: Nhận kết quả thành công thì chuyển ngay trạng thái Hoàn tất
           item.status = 'Hoàn tất';
           item.errorMsg = null;
 
@@ -893,7 +891,13 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
 
     // --- 3. HÀM TẠO PDF BẰNG PDF-LIB AN TOÀN TUYỆT ĐỐI (TRẢ VỀ UINT8ARRAY) ---
     async function generatePdfOverlay(item) {
-      const { PDFDocument, rgb, StandardFonts, degrees } = getPdfLib();
+      const engine = getPdfEngine();
+      if (!engine) {
+        alert("Trình duyệt đang tải thư viện PDF, vui lòng bấm lại sau 2 giây!");
+        return null;
+      }
+      const { PDFDocument, rgb, StandardFonts, degrees } = engine;
+
       const pdfDoc = await PDFDocument.create();
 
       // Nhúng font chữ StandardFonts.HelveticaBold
@@ -941,7 +945,7 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
         for (const t of textItems) {
           if (!t.boundingBox || !Array.isArray(t.boundingBox)) continue;
 
-          // Chuẩn hóa text an toàn trước khi vẽ
+          // Chuẩn hóa text an toàn trước khi vẽ (lọc sạch Unicode dấu tiếng Việt để font PDF chuẩn không lỗi)
           const safeText = String(t.text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, " ").trim();
           if (!safeText) continue;
 
@@ -1015,6 +1019,7 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
 
       try {
         const pdfBytes = await generatePdfOverlay(item);
+        if (!pdfBytes) return;
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const cleanName = item.name.replace(/\.[^/.]+$/, '');
         triggerDownload(blob, `${cleanName}_overlay.pdf`);
@@ -1052,14 +1057,18 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
       triggerDownload(blob, `${item.name.replace(/\.[^/.]+$/, '')}_khung_ten.txt`);
     }
 
-    // --- 1. QUY CHUẨN GÓI ZIP "Tất cả (.ZIP)": ĐỦ BỘ 3 FILE MỖI BẢN VẼ ---
+    // --- QUY CHUẨN GÓI ZIP "Tất cả (.ZIP)": ĐỦ BỘ 3 FILE MỖI BẢN VẼ ---
     async function downloadAllZip() {
       if (STATE.queue.length === 0) {
         alert('Chưa có bản vẽ nào trong danh sách.');
         return;
       }
 
-      const JSZipClass = getJSZip();
+      const JSZipClass = getZipEngine();
+      if (!JSZipClass) {
+        alert("Thư viện nén ZIP đang tải, vui lòng bấm lại sau 2 giây!");
+        return;
+      }
       const zip = new JSZipClass();
 
       dom.btnDownloadAllZip.disabled = true;
@@ -1086,11 +1095,13 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
 
           // File 3: PDF Overlay (BẮT BUỘC CÓ 100%, NHÚNG UINT8ARRAY VÀO ZIP)
           const pdfBytes = await generatePdfOverlay(item);
-          zip.file(`${prefix}_overlay.pdf`, pdfBytes);
+          if (pdfBytes) {
+            zip.file(`${prefix}_overlay.pdf`, pdfBytes);
+          }
         }
 
         const zipContent = await zip.generateAsync({ type: 'blob' });
-        triggerDownload(zipContent, `CAD_Batch_All_v18.0_${Date.now()}.zip`);
+        triggerDownload(zipContent, `CAD_Batch_All_v19.0_${Date.now()}.zip`);
       } catch (err) {
         console.error("Lỗi khi tạo gói All ZIP:", err);
         alert("Lỗi xuất gói ZIP: " + (err.message || err));
@@ -1100,14 +1111,18 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
       }
     }
 
-    // --- 4. NÚT "PDF .ZIP": CHỨA TOÀN BỘ FILE _overlay.pdf ---
+    // --- NÚT "PDF .ZIP": CHỨA TOÀN BỘ FILE _overlay.pdf ---
     async function downloadPdfZip() {
       if (STATE.queue.length === 0) {
         alert('Chưa có bản vẽ nào trong danh sách.');
         return;
       }
 
-      const JSZipClass = getJSZip();
+      const JSZipClass = getZipEngine();
+      if (!JSZipClass) {
+        alert("Thư viện nén ZIP đang tải, vui lòng bấm lại sau 2 giây!");
+        return;
+      }
       const zip = new JSZipClass();
 
       dom.btnDownloadPdfZip.disabled = true;
@@ -1123,11 +1138,13 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
 
           // Tạo PDF Overlay dạng Uint8Array và nhúng vào ZIP
           const pdfBytes = await generatePdfOverlay(item);
-          zip.file(`${prefix}_overlay.pdf`, pdfBytes);
+          if (pdfBytes) {
+            zip.file(`${prefix}_overlay.pdf`, pdfBytes);
+          }
         }
 
         const zipContent = await zip.generateAsync({ type: 'blob' });
-        triggerDownload(zipContent, `CAD_PDF_Overlays_v18.0_${Date.now()}.zip`);
+        triggerDownload(zipContent, `CAD_PDF_Overlays_v19.0_${Date.now()}.zip`);
       } catch (err) {
         console.error("Lỗi khi tạo gói PDF ZIP:", err);
         alert("Lỗi xuất PDF ZIP: " + (err.message || err));
