@@ -60,7 +60,7 @@
         <div>
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
             CAD Batch OCR & PDF Overlay
-            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60">Client Engine</span>
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60">Gemini 3.8 Engine</span>
           </h1>
           <p class="text-xs text-slate-400">Trích xuất văn bản tọa độ thực & Bọc PDF trực tiếp trên trình duyệt</p>
         </div>
@@ -72,7 +72,8 @@
         <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
           <label for="modelSelect" class="text-slate-400 font-medium">Model:</label>
           <select id="modelSelect" class="bg-transparent text-purple-300 focus:outline-none cursor-pointer font-semibold">
-            <option value="gemini-2.5-flash" selected class="bg-slate-900 text-slate-100">gemini-2.5-flash (Khuyên dùng)</option>
+            <option value="gemini-3.8-flash" selected class="bg-slate-900 text-slate-100">gemini-3.8-flash (Mặc định)</option>
+            <option value="gemini-2.5-flash" class="bg-slate-900 text-slate-100">gemini-2.5-flash</option>
             <option value="gemini-1.5-flash" class="bg-slate-900 text-slate-100">gemini-1.5-flash</option>
           </select>
         </div>
@@ -248,7 +249,7 @@
     // --- QUẢN LÝ TRẠNG THÁI (STATE) ---
     const STATE = {
       apiKey: localStorage.getItem('gemini_cad_key') || '',
-      selectedModel: 'gemini-2.5-flash',
+      selectedModel: 'gemini-3.8-flash', // Mặc định sử dụng gemini-3.8-flash
       queue: [], // { id, file, originalImgUrl, width, height, status: 'Chờ'|'Đang đọc...'|'Hoàn tất'|'Lỗi', ocrData: null, pdfBlob: null, errorMsg: null }
       selectedIndex: -1,
       isProcessing: false,
@@ -307,6 +308,7 @@
         dom.apiKeyInput.setAttribute('type', type);
       });
 
+      dom.modelSelect.value = STATE.selectedModel;
       dom.modelSelect.addEventListener('change', (e) => {
         STATE.selectedModel = e.target.value;
       });
@@ -540,7 +542,7 @@
 
       dom.textContent1.value = sortedItems.map(item => item.text.trim()).filter(Boolean).join('\n');
 
-      // Tab 2: Vùng Khung Tên (Title Block) - Heuristic kỹ thuật: Tọa độ Ymin > 700 và Xmin > 550 (Góc dưới cùng bản vẽ)
+      // Tab 2: Vùng Khung Tên (Title Block) - Heuristic: Tọa độ Ymin >= 680 và Xmin >= 500 (Góc dưới cùng bản vẽ)
       const titleBlockItems = sortedItems.filter(item => {
         const [ymin, xmin] = item.boundingBox;
         return ymin >= 680 && xmin >= 500;
@@ -620,7 +622,7 @@
 
       for (let i = 0; i < STATE.queue.length; i++) {
         const item = STATE.queue[i];
-        if (item.status === 'Hoàn tất') continue; // Bỏ qua file đã OCR
+        if (item.status === 'Hoàn tất') continue; // Bỏ qua file đã hoàn tất
 
         item.status = 'Đang đọc...';
         renderQueueList();
@@ -764,7 +766,6 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
       if (imageFile.type === 'image/png' || imageFile.name.match(/\.png$/i)) {
         embeddedImage = await pdfDoc.embedPng(imageBytes);
       } else {
-        // Nhúng JPEG/Khác
         embeddedImage = await pdfDoc.embedJpg(imageBytes);
       }
 
@@ -779,7 +780,7 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
         height: origHeight
       });
 
-      // 2. Chuyển mã màu HEX overlay sang RGB (pdf-lib dùng dải 0 -> 1)
+      // 2. Chuyển mã màu HEX overlay sang RGB
       const hexToRgb = (hex) => {
         let clean = hex.replace('#', '');
         if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
@@ -801,12 +802,11 @@ Trả về duy nhất định dạng JSON thuần tuý với cấu trúc:
           const yTop = (ymin / 1000) * origHeight;
 
           // Hệ toạ độ PDF: (0,0) nằm ở đáy dưới bên trái (Bottom-Left)
-          // Để text nằm vừa vặn vào khung:
           const y = origHeight - yTop - boxHeight * 0.82;
           const fontSize = Math.max(boxHeight * 0.8, 6);
 
           try {
-            // Lọc các ký tự ngoài ASCII để tránh lỗi encode của Helvetica chuẩn
+            // Lọc các ký tự ngoài ASCII để tránh lỗi font Helvetica chuẩn
             const cleanText = item.text.replace(/[^\x20-\x7E\xA0-\xFF]/g, ' ');
 
             page.drawText(cleanText, {
