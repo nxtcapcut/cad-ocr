@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CAD Batch OCR & PDF Overlay - Final</title>
+  <title>CAD Batch OCR & PDF Overlay - v5.0</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- pdf-lib CDN -->
@@ -32,12 +32,12 @@
         <div>
           <h1 class="text-sm font-bold text-white flex items-center gap-2">
             CAD Batch OCR &amp; PDF Overlay
-            <span id="versionBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono font-bold">
-              v4.0 Final Ready
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500 text-slate-950 border border-emerald-400 font-mono font-extrabold animate-pulse">
+              v5.0 REBUILT
             </span>
           </h1>
           <p class="text-[11px] text-slate-400">
-            Hỗ trợ OpenRouter API • Tự động nhận diện bản vẽ kỹ thuật &amp; khung tên
+            OpenRouter Direct Web Engine • Tự động bóc tách bản vẽ kỹ thuật &amp; khung tên
           </p>
         </div>
       </div>
@@ -74,18 +74,22 @@
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
     <!-- LEFT: QUEUE & UPLOAD -->
     <div class="lg:col-span-4 flex flex-col h-[calc(100vh-6.5rem)] bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+      <!-- VÙNG TẢI FILE TỰ ĐỘNG NẠP TRỰC TIẾP -->
       <div class="p-3 border-b border-slate-800 bg-slate-950/60">
-        <div id="dropZone" class="flex flex-col items-center justify-center p-3 border-2 border-dashed border-slate-700 hover:border-purple-500 rounded-xl bg-slate-900/50 transition-all text-center">
-          <span class="text-xs font-semibold text-slate-200 mb-2">Chọn hoặc kéo thả ảnh bản vẽ vào đây</span>
+        <label class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-purple-500/60 hover:border-purple-400 rounded-xl bg-purple-950/20 hover:bg-purple-950/30 cursor-pointer transition-all text-center">
+          <svg class="w-7 h-7 text-purple-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span class="text-xs font-bold text-purple-200">BẤM VÀO ĐÂY ĐỂ CHỌN ẢNH BẢN VẼ</span>
+          <span class="text-[10px] text-slate-400 mt-1">Hỗ trợ PNG, JPG, JPEG, WEBP (chọn nhiều ảnh cùng lúc)</span>
           <input
             id="fileInput"
             type="file"
             multiple
             accept="image/*"
-            class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-500 cursor-pointer"
+            class="hidden"
           />
-          <span class="text-[10px] text-slate-500 mt-2">Hỗ trợ PNG, JPG, JPEG, WEBP, BMP</span>
-        </div>
+        </label>
       </div>
 
       <!-- TOOLBAR -->
@@ -105,7 +109,12 @@
 
       <!-- QUEUE LIST -->
       <div id="queueList" class="flex-1 overflow-y-auto p-2 space-y-1.5">
-        <div class="p-6 text-center text-xs text-slate-500">Chưa có file nào trong hàng đợi</div>
+        <div id="emptyHint" class="p-8 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
+          <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Chưa có file nào trong hàng đợi
+        </div>
       </div>
     </div>
 
@@ -179,8 +188,8 @@
     const toggleKeyBtn = document.getElementById("toggleKeyBtn");
     const modelSelect = document.getElementById("modelSelect");
     const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
     const queueList = document.getElementById("queueList");
+    const emptyHint = document.getElementById("emptyHint");
     const startOcrBtn = document.getElementById("startOcrBtn");
     const downloadZipBtn = document.getElementById("downloadZipBtn");
     const downloadPdfZipBtn = document.getElementById("downloadPdfZipBtn");
@@ -202,7 +211,6 @@
     const saveApiKey = (val) => {
       state.apiKey = val.trim();
       localStorage.setItem("cad_openrouter_key", state.apiKey);
-      if (state.apiKey) showToast("Đã lưu OpenRouter Key vào trình duyệt!");
     };
 
     apiKeyInput.addEventListener("input", (e) => saveApiKey(e.target.value));
@@ -224,20 +232,16 @@
       setTimeout(() => toast.classList.add("hidden"), 3500);
     }
 
-    // XỬ LÝ FILE ĐẢM BẢO KHÔNG BỊ BỎ SÓT FILE ẢNH
-    function processUploadedFiles(rawFiles) {
-      const files = Array.from(rawFiles);
-      if (!files.length) return;
-
-      let addedCount = 0;
-      files.forEach(file => {
+    // NẠP ẢNH TRỰC TIẾP
+    function handleFiles(files) {
+      if (!files || !files.length) return;
+      Array.from(files).forEach(file => {
         const reader = new FileReader();
-        reader.onload = (evt) => {
+        reader.onload = (e) => {
           const item = {
-            id: "file_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+            id: "f_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
             name: file.name,
-            size: file.size,
-            previewUrl: evt.target.result,
+            previewUrl: e.target.result,
             status: "idle",
             result: null
           };
@@ -247,35 +251,28 @@
           renderActiveView();
         };
         reader.readAsDataURL(file);
-        addedCount++;
       });
-
-      showToast(`Đã thêm ${addedCount} bản vẽ vào hàng đợi!`);
+      showToast("Đã thêm bản vẽ vào hàng đợi!");
     }
 
     fileInput.addEventListener("change", (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        processUploadedFiles(e.target.files);
-      }
+      handleFiles(e.target.files);
+      fileInput.value = "";
     });
 
-    ["dragenter", "dragover", "dragleave", "drop"].forEach(name => {
-      window.addEventListener(name, (e) => e.preventDefault(), false);
-      dropZone.addEventListener(name, (e) => e.preventDefault(), false);
-    });
-
-    dropZone.addEventListener("dragover", () => dropZone.classList.add("border-purple-500", "bg-slate-800/80"));
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("border-purple-500", "bg-slate-800/80"));
-    dropZone.addEventListener("drop", (e) => {
-      dropZone.classList.remove("border-purple-500", "bg-slate-800/80");
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        processUploadedFiles(e.dataTransfer.files);
+    // KÉO THẢ TỰ DO TOÀN MÀN HÌNH
+    window.addEventListener("dragover", (e) => e.preventDefault());
+    window.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (e.dataTransfer && e.dataTransfer.files) {
+        handleFiles(e.dataTransfer.files);
       }
     });
 
     function renderQueue() {
       if (!state.queue.length) {
-        queueList.innerHTML = `<div class="p-6 text-center text-xs text-slate-500">Chưa có file nào trong hàng đợi</div>`;
+        queueList.innerHTML = "";
+        queueList.appendChild(emptyHint);
         return;
       }
 
@@ -459,7 +456,7 @@
       });
     }
 
-    // GỌI API KÈM DỰ PHÒNG PROXY CHỐNG HOÀN TOÀN LỖI 405
+    // GỌI OPENROUTER CHUẨN KÈM PROXY FALLBACK
     async function callOpenRouterOcr(item) {
       const key = state.apiKey.trim();
       if (!key) throw new Error("Chưa nhập OpenRouter API Key!");
@@ -497,7 +494,7 @@ Bounding box coordinates must be normalized integers 0 to 1000.`;
 
       let res = null;
 
-      // 1. Gửi trực tiếp
+      // Thử trực tiếp
       try {
         res = await fetch("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)", {
           method: "POST",
@@ -509,7 +506,7 @@ Bounding box coordinates must be normalized integers 0 to 1000.`;
         });
       } catch (e) {}
 
-      // 2. Chuyển sang CORS Proxy dự phòng nếu bị lỗi mạng hoặc 405
+      // Dự phòng nếu lỗi 405 hoặc chặn mạng
       if (!res || res.status === 405 || !res.ok) {
         try {
           res = await fetch("[https://corsproxy.io/](https://corsproxy.io/)?" + encodeURIComponent("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)"), {
